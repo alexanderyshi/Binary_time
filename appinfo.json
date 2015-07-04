@@ -1,0 +1,23 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "Alexander Shi",
+    "longName": "BinaryBus",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "BinaryBus",
+    "targetPlatforms": [
+        "aplite",
+        "basalt"
+    ],
+    "uuid": "68434cba-1180-4915-9a0c-b8f9dd45b083",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
