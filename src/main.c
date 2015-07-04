@@ -12,12 +12,7 @@ static char bin_buffer[12];
 #define Text_Colour ((uint8_t)0b11111111)
   
 static void dec_to_bin(char buffer[], int num){
-  //index one for AM/PM
-  if (num >=1200)
-    buffer[0] = '1';
-  //reduce to 12h time
-  num %= 1200;
-  for (int i =11; i>= 1; i--){
+  for (int i =11; i>= 0; i--){
     if (num%2)
       buffer[i] = '1';
     else
@@ -97,7 +92,7 @@ static void main_window_load(Window *window) {
   layer_set_update_proc(s_graphics_layer, graphics_update_proc);
   
   // Create time TextLayer
-  s_time_layer = text_layer_create(GRect(0, 55, 144, 50));
+  s_time_layer = text_layer_create(GRect(0, 0, 144, 50));
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, (GColor)Text_Colour);
 
