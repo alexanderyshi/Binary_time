@@ -12,7 +12,12 @@ static char bin_buffer[12];
 #define Text_Colour ((uint8_t)0b11111111)
   
 static void dec_to_bin(char buffer[], int num){
-  for (int i =11; i>= 0; i--){
+  //index one for AM/PM
+  if (num >=1200)
+    buffer[0] = '1';
+  //reduce to 12h time
+  num %= 1200;
+  for (int i =11; i>= 1; i--){
     if (num%2)
       buffer[i] = '1';
     else
@@ -110,6 +115,7 @@ static void main_window_load(Window *window) {
 static void main_window_unload(Window *window) {
     // Destroy TextLayer
     text_layer_destroy(s_time_layer);
+    layer_destroy(s_graphics_layer);
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -137,7 +143,7 @@ static void init() {
 }
 
 static void deinit() {
-
+  window_destroy(s_main_window);
 }
 
 int main(void) {
