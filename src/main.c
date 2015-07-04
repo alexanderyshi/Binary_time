@@ -113,9 +113,11 @@ static void main_window_load(Window *window) {
 }
 
 static void main_window_unload(Window *window) {
-    // Destroy TextLayer
+    // Destroy Layers
     text_layer_destroy(s_time_layer);
     layer_destroy(s_graphics_layer);
+    s_time_layer = NULL;
+    s_graphics_layer = NULL;
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -143,7 +145,6 @@ static void init() {
 }
 
 static void deinit() {
-  window_destroy(s_main_window);
 }
 
 int main(void) {
