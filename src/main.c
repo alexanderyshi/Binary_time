@@ -4,39 +4,29 @@
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static Layer *s_graphics_layer;
-static char bin_buffer[12];
+static int num_hour = 0;
+static int num_min = 0;
 #define IC_Colour ((uint8_t)0b11000001)
 #define Light_Colour ((uint8_t)0b11101001)
 #define Pin_Colour ((uint8_t)0b11010101)
 #define Background_Colour ((uint8_t)0b11001011)
 #define Text_Colour ((uint8_t)0b11111111)
-  
-static void dec_to_bin(char buffer[], int num){
-  //reduce to 12h time
-  for (int i =11; i>= 1; i--){
-    if (num%2)
-      buffer[i] = '1';
-    else
-      buffer[i] = '0';
-    num >>= 1;  
-  }
+
+//TODO: change all hard-coded operations in function calls into #define macros
+//TODO: global binary time struct?
+
+	//function takes 2-char string and converts into an int
+static int int_from_string(char buffer[]) {
+  return 10*(buffer[0]-'0') + (buffer[1]-'0');
 }
 
-static int int_from_string(char buffer[]) {
-  int num = 0;
-  for (int i = 2; i<4; i++){
-    buffer[i] = buffer[i+1];
-  }
-  for (int i = 0; i<4; i++){
-      int order = 1;
-      for (int j = 3-i; j> 0; j--)
-        order *= 10;
-      num += (buffer[i]-'0')*order;
-  }
-  return num;
+static int is_PM(){
+	return num_hour >= 12;
 }
+
 
 static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
+  //Draw IC body
   graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
   graphics_fill_rect(ctx, 
 					(GRect){.origin = (GPoint){.x = 144/2-20,.y = 168/2-55},
@@ -45,24 +35,49 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 					2,
 					GCornersAll);
   
-	for (int i = 0; i<12; i++)	{
-    int x_ = 144/2-40+60*(i/6);
+  //Draw IC pins and binary lights
+	for (int i = 0; i<6; i++)	{
+    int x_ = 144/2-40;
     int y_ = 168/2-55+i%6*20;
-    graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
+		graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
+		//left pins
 		graphics_fill_rect(ctx, 
-                       (GRect){.origin = (GPoint){.x = x_,.y = y_},
-								              .size = (GSize){.w = 20,.h = 10}
-						                  },
-					              1,
-					              GCornersAll);
-    if (bin_buffer[i] == '1')
-    {
-      graphics_context_set_fill_color(ctx, (GColor)Light_Colour);
-      graphics_fill_circle(ctx, 
-                           (GPoint){.x = x_ + 10,.y = y_+5}
-                           , (uint16_t) 3);
-    }
-	}
+							(GRect){.origin = (GPoint){.x = x_,.y = y_},
+									  .size = (GSize){.w = 20,.h = 10}
+									},
+						  1,
+						  GCornersAll);
+		//right pins
+		graphics_fill_rect(ctx, 
+							(GRect){.origin = (GPoint){.x = x_ + 60,.y = y_},
+									  .size = (GSize){.w = 20,.h = 10}
+									},
+						  1,
+						  GCornersAll);
+		  graphics_context_set_fill_color(ctx, (GColor)Light_Colour);
+		//draw minute circles
+		if (num_min >> (5-i) & 1)
+		{
+		  graphics_fill_circle(ctx, 
+							   (GPoint){.x = x_ + 60 + 10,.y = y_+5}
+							   , (uint16_t) 3);
+		}
+		//draw hour circles
+		if (i >0){
+			if (num_hour >> (5-i) & 1)
+			graphics_fill_circle(ctx, 
+							   (GPoint){.x = x_ + 10,.y = y_+5}
+							   , (uint16_t) 3);
+		}
+		else{
+		  //draw AM/PM circle
+			if (is_PM())
+				graphics_fill_circle(ctx, 
+											   (GPoint){.x = x_ + 10,.y = y_+5}
+											   , (uint16_t) 3);
+		}
+	}// end for loop
+	
 }
 
 static void update_time() {
@@ -71,19 +86,18 @@ static void update_time() {
   struct tm *tick_time = localtime(&temp);
 
   // Create a long-lived buffer
-  static char bufferHour[] = "00";
-  static char bufferMin[] = "00";
+  static char hour_string[] = "00";
+  static char min_string[] = "00";
+  static char debug_string[] = "00:00";
   // Write the current hours and minutes into the buffer
-  strftime(bufferHour, sizeof("00"), "%H", tick_time);
-  strftime(bufferMin, sizeof("00"), "%M", tick_time);
+  strftime(hour_string, sizeof("00"), "%H", tick_time);
+  strftime(min_string, sizeof("00"), "%M", tick_time);
+  strftime(debug_string, sizeof("00:00"), "%H%M", tick_time);
   //convert timestamp into decimal value
-  int numHour = int_from_string(bufferHour);
-  int numMin = int_from_string(bufferMin);
-  //turn decimal into binary
-  dec_to_bin(bin_buffer, numHour);
-  dec_to_bin(bin_buffer, numMin);
+  num_hour = int_from_string(hour_string);
+  num_min = int_from_string(min_string);
   // Display this time on the TextLayer
-  text_layer_set_text(s_time_layer, bin_buffer);
+  text_layer_set_text(s_time_layer, debug_string);
 }
 
 static void main_window_load(Window *window) {
