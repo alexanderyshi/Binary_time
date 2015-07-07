@@ -7,8 +7,10 @@ static Layer *s_graphics_layer;
 static int num_hour = 0;
 static int num_min = 0;
 #define IC_Colour ((uint8_t)0b11000001)
-#define Light_Colour ((uint8_t)0b11101001)
-#define Pin_Colour ((uint8_t)0b11010101)
+#define PM_Light_Colour  ((uint8_t)0b11001011)
+#define Min_Light_Colour ((uint8_t)0b11110010)
+#define Hour_Light_Colour ((uint8_t)0b11100011)
+#define Pin_Colour ((uint8_t)0b11101010)
 #define Background_Colour ((uint8_t)0b11001011)
 #define Text_Colour ((uint8_t)0b11111111)
 
@@ -54,27 +56,32 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 									},
 						  1,
 						  GCornersAll);
-		  graphics_context_set_fill_color(ctx, (GColor)Light_Colour);
 		//draw minute circles
 		if (num_min >> (5-i) & 1)
 		{
+		  graphics_context_set_fill_color(ctx, (GColor)Min_Light_Colour);
 		  graphics_fill_circle(ctx, 
 							   (GPoint){.x = x_ + 60 + 10,.y = y_+5}
 							   , (uint16_t) 3);
 		}
 		//draw hour circles
 		if (i >0){
-			if (num_hour >> (5-i) & 1)
-			graphics_fill_circle(ctx, 
-							   (GPoint){.x = x_ + 10,.y = y_+5}
-							   , (uint16_t) 3);
+			if (num_hour >> (5-i) & 1){
+        graphics_context_set_fill_color(ctx, (GColor)Hour_Light_Colour);
+        graphics_fill_circle(ctx, 
+  							   (GPoint){.x = x_ + 10,.y = y_+5}
+  							   , (uint16_t) 3);  
+      }
+			
 		}
 		else{
 		  //draw AM/PM circle
-			if (is_PM())
+			if (!is_PM()){
+        graphics_context_set_fill_color(ctx, (GColor)PM_Light_Colour);
 				graphics_fill_circle(ctx, 
 											   (GPoint){.x = x_ + 10,.y = y_+5}
 											   , (uint16_t) 3);
+      }
 		}
 	}// end for loop
 	
