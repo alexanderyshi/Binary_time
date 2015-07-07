@@ -8,15 +8,11 @@ static char bin_buffer[12];
 #define IC_Colour ((uint8_t)0b11000001)
 #define Light_Colour ((uint8_t)0b11101001)
 #define Pin_Colour ((uint8_t)0b11010101)
-#define Background_Colour ((uint8_t)0b11000111)
+#define Background_Colour ((uint8_t)0b11001011)
 #define Text_Colour ((uint8_t)0b11111111)
   
 static void dec_to_bin(char buffer[], int num){
-  //index one for AM/PM
-  if (num >=1200)
-    buffer[0] = '1';
   //reduce to 12h time
-  num %= 1200;
   for (int i =11; i>= 1; i--){
     if (num%2)
       buffer[i] = '1';
@@ -75,18 +71,17 @@ static void update_time() {
   struct tm *tick_time = localtime(&temp);
 
   // Create a long-lived buffer
-  static char buffer[] = "00:00";
-
+  static char bufferHour[] = "00";
+  static char bufferMin[] = "00";
   // Write the current hours and minutes into the buffer
-  strftime(buffer, sizeof("00:00"), "%H:%M", tick_time);
-  
+  strftime(bufferHour, sizeof("00"), "%H", tick_time);
+  strftime(bufferMin, sizeof("00"), "%M", tick_time);
   //convert timestamp into decimal value
-  int num = int_from_string(buffer);
-  
+  int numHour = int_from_string(bufferHour);
+  int numMin = int_from_string(bufferMin);
   //turn decimal into binary
-  strcpy(bin_buffer, "000000000000");
-  dec_to_bin(bin_buffer, num);
-  
+  dec_to_bin(bin_buffer, numHour);
+  dec_to_bin(bin_buffer, numMin);
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, bin_buffer);
 }
