@@ -1,5 +1,5 @@
 #include <pebble.h>
-#include <math.h>
+// #include <cstdlib.h>
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -11,8 +11,12 @@ static int num_min = 0;
 #define Min_Light_Colour ((uint8_t)0b11110010)
 #define Hour_Light_Colour ((uint8_t)0b11100011)
 #define Pin_Colour ((uint8_t)0b11101010)
-#define Background_Colour ((uint8_t)0b11001011)
 #define Text_Colour ((uint8_t)0b11111111)
+#define Night_Colour ((uint8_t)0b11000110)
+#define Dawn_Colour ((uint8_t)0b11100110)
+#define Day_Colour ((uint8_t)0b11000110)
+#define Blue_Colour ((uint8_t)0b11010111)
+
 
 //TODO: change all hard-coded operations in function calls into #define macros
 //TODO: global binary time struct?
@@ -28,6 +32,23 @@ static int is_PM(){
 
 
 static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
+  //update background colour
+  //TODO: find std GNU C lib and add to src
+  unsigned int time_diff = (unsigned int)(num_hour-12>=0 ? num_hour-12 : 12-num_hour);
+  if (time_diff > 8)
+  {
+    window_set_background_color(s_main_window, (GColor)Night_Colour);   
+  }else if (time_diff > 5)
+  {
+    window_set_background_color(s_main_window, (GColor)Dawn_Colour);   
+  }else if (time_diff > 2)
+  {
+    window_set_background_color(s_main_window, (GColor)Day_Colour);  
+  }else{
+    window_set_background_color(s_main_window, (GColor)Blue_Colour);  
+  }
+  
+  
   //Draw IC body
   graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
   graphics_fill_rect(ctx, 
@@ -42,46 +63,51 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
     int x_ = 144/2-40;
     int y_ = 168/2-55+i%6*20;
 		graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
-		//left pins
-		graphics_fill_rect(ctx, 
-							(GRect){.origin = (GPoint){.x = x_,.y = y_},
-									  .size = (GSize){.w = 20,.h = 10}
-									},
-						  1,
-						  GCornersAll);
-		//right pins
+
+		//draw minute pins
+		if (num_min >> (5-i) & 1)
+		{
+		  graphics_context_set_fill_color(ctx, (GColor)Min_Light_Colour);
+		  
+		}else{
+      graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
+    }
 		graphics_fill_rect(ctx, 
 							(GRect){.origin = (GPoint){.x = x_ + 60,.y = y_},
 									  .size = (GSize){.w = 20,.h = 10}
 									},
 						  1,
 						  GCornersAll);
-		//draw minute circles
-		if (num_min >> (5-i) & 1)
-		{
-		  graphics_context_set_fill_color(ctx, (GColor)Min_Light_Colour);
-		  graphics_fill_circle(ctx, 
-							   (GPoint){.x = x_ + 60 + 10,.y = y_+5}
-							   , (uint16_t) 3);
-		}
-		//draw hour circles
+    
+		//draw hour pins
 		if (i >0){
 			if (num_hour >> (5-i) & 1){
         graphics_context_set_fill_color(ctx, (GColor)Hour_Light_Colour);
-        graphics_fill_circle(ctx, 
-  							   (GPoint){.x = x_ + 10,.y = y_+5}
-  							   , (uint16_t) 3);  
       }
+      else{
+        graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);  
+      }
+      graphics_fill_rect(ctx, 
+                         (GRect){.origin = (GPoint){.x = x_,.y = y_},
+                           .size = (GSize){.w = 20,.h = 10}
+                                },
+                         1,
+                         GCornersAll);
 			
 		}
 		else{
 		  //draw AM/PM circle
-			if (!is_PM()){
+			if (is_PM()){
         graphics_context_set_fill_color(ctx, (GColor)PM_Light_Colour);
-				graphics_fill_circle(ctx, 
-											   (GPoint){.x = x_ + 10,.y = y_+5}
-											   , (uint16_t) 3);
+      }else{
+        graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
       }
+      graphics_fill_rect(ctx, 
+                         (GRect){.origin = (GPoint){.x = x_,.y = y_},
+                           .size = (GSize){.w = 20,.h = 10}
+                                },
+                         1,
+                         GCornersAll);
 		}
 	}// end for loop
 	
@@ -105,6 +131,7 @@ static void update_time() {
   num_min = int_from_string(min_string);
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, debug_string);
+  
 }
 
 static void main_window_load(Window *window) {
@@ -149,7 +176,7 @@ static void init() {
     .load = main_window_load,
     .unload = main_window_unload
   });
-  window_set_background_color(s_main_window, (GColor)Background_Colour);
+  window_set_background_color(s_main_window, (GColor)Blue_Colour);
   
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
