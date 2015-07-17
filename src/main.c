@@ -14,7 +14,7 @@ static int num_min = 0;
 #define Text_Colour ((uint8_t)0b11111111)
 #define Night_Colour ((uint8_t)0b11000110)
 #define Dawn_Colour ((uint8_t)0b11100110)
-#define Day_Colour ((uint8_t)0b11000110)
+#define Day_Colour ((uint8_t)0b11010110)
 #define Blue_Colour ((uint8_t)0b11010111)
 
 
@@ -32,16 +32,20 @@ static int is_PM(){
 
 
 static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
-  //update background colour
   //TODO: find std GNU C lib and add to src
-  unsigned int time_diff = (unsigned int)(num_hour-12>=0 ? num_hour-12 : 12-num_hour);
-  if (time_diff > 8)
+  //http://www.gnu.org/software/libc/download.html
+  
+  
+  //update background colour
+  //1300 treated as peak of day, sunrise/sunset is roughly 0600-2100 in summer
+  unsigned int time_diff = (unsigned int)(num_hour-13>=0 ? num_hour-13 : 13-num_hour);
+  if (time_diff >= 7)
   {
     window_set_background_color(s_main_window, (GColor)Night_Colour);   
-  }else if (time_diff > 5)
+  }else if (time_diff >= 5)
   {
     window_set_background_color(s_main_window, (GColor)Dawn_Colour);   
-  }else if (time_diff > 2)
+  }else if (time_diff >= 2)
   {
     window_set_background_color(s_main_window, (GColor)Day_Colour);  
   }else{
@@ -96,7 +100,7 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 			
 		}
 		else{
-		  //draw AM/PM circle
+		  //draw AM/PM pin
 			if (is_PM()){
         graphics_context_set_fill_color(ctx, (GColor)PM_Light_Colour);
       }else{
@@ -111,7 +115,7 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 		}
 	}// end for loop
 	
-}
+}//end graphics_update_proc
 
 static void update_time() {
   // Get a tm structure
