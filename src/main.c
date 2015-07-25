@@ -6,17 +6,17 @@ static TextLayer *s_time_layer;
 static Layer *s_graphics_layer;
 static int num_hour = 0;
 static int num_min = 0;
+static int debug_hide_time = 0;
 #define IC_Colour ((uint8_t)0b11000001)
-#define PM_Light_Colour  ((uint8_t)0b11001011)
+#define PM_Light_Colour  ((uint8_t)0b11001101)
 #define Min_Light_Colour ((uint8_t)0b11110010)
 #define Hour_Light_Colour ((uint8_t)0b11100011)
 #define Pin_Colour ((uint8_t)0b11101010)
 #define Text_Colour ((uint8_t)0b11111111)
 #define Night_Colour ((uint8_t)0b11000110)
 #define Dawn_Colour ((uint8_t)0b11100110)
-#define Day_Colour ((uint8_t)0b11010110)
-#define Blue_Colour ((uint8_t)0b11010111)
-
+#define Day_Colour ((uint8_t)0b11001011)
+#define Noon_Colour ((uint8_t)0b11101111)
 
 //TODO: change all hard-coded operations in function calls into #define macros
 //TODO: global binary time struct?
@@ -30,6 +30,17 @@ static int is_PM(){
 	return num_hour >= 12;
 }
 
+//on shaking, the debug time will be shown for 5 seconds
+static void tap_handler(AccelAxisType axis, int32_t direction) {
+  //show debug time
+  layer_set_hidden((Layer*)s_time_layer, false);
+  // Get a tm structure
+  time_t temp = time(NULL); 
+  struct tm *tick_time = localtime(&temp);
+  static char second_string[] = "00";
+  strftime(second_string, sizeof("00"), "%S", tick_time);
+  debug_hide_time = (int_from_string(second_string)+5)%60;
+}
 
 static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   //TODO: find std GNU C lib and add to src
@@ -39,17 +50,17 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   //update background colour
   //1300 treated as peak of day, sunrise/sunset is roughly 0600-2100 in summer
   unsigned int time_diff = (unsigned int)(num_hour-13>=0 ? num_hour-13 : 13-num_hour);
-  if (time_diff >= 7)
+  if (time_diff >= 8)
   {
     window_set_background_color(s_main_window, (GColor)Night_Colour);   
-  }else if (time_diff >= 5)
+  }else if (time_diff >= 6)
   {
     window_set_background_color(s_main_window, (GColor)Dawn_Colour);   
   }else if (time_diff >= 2)
   {
     window_set_background_color(s_main_window, (GColor)Day_Colour);  
   }else{
-    window_set_background_color(s_main_window, (GColor)Blue_Colour);  
+    window_set_background_color(s_main_window, (GColor)Noon_Colour);  
   }
   
   
@@ -125,17 +136,24 @@ static void update_time() {
   // Create a long-lived buffer
   static char hour_string[] = "00";
   static char min_string[] = "00";
+  static char second_string[] = "00";
   static char debug_string[] = "00:00";
   // Write the current hours and minutes into the buffer
   strftime(hour_string, sizeof("00"), "%H", tick_time);
   strftime(min_string, sizeof("00"), "%M", tick_time);
+  strftime(second_string, sizeof("00"), "%S", tick_time);
   strftime(debug_string, sizeof("00:00"), "%H%M", tick_time);
   //convert timestamp into decimal value
   num_hour = int_from_string(hour_string);
   num_min = int_from_string(min_string);
+  
+  //hide the debug time string if it has been visible for 5 seconds
+  if (!layer_get_hidden((Layer*)s_time_layer)){
+    if (int_from_string(second_string)>debug_hide_time)
+      layer_set_hidden((Layer*)s_time_layer, true);
+  }
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, debug_string);
-  
 }
 
 static void main_window_load(Window *window) {
@@ -149,7 +167,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_color(s_time_layer, (GColor)Text_Colour);
 
   // Improve the layout to be more like a watchface
-  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
   
   update_time();
@@ -180,10 +198,12 @@ static void init() {
     .load = main_window_load,
     .unload = main_window_unload
   });
-  window_set_background_color(s_main_window, (GColor)Blue_Colour);
+  window_set_background_color(s_main_window, (GColor)Noon_Colour);
   
+  // activate  tap handler
+  accel_tap_service_subscribe(tap_handler);
   // Register with TickTimerService
-  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
 
   // Show the Window on the watch, with animated=true
   window_stack_push(s_main_window, true);
@@ -192,7 +212,8 @@ static void init() {
 }
 
 static void deinit() {
-}
+    accel_tap_service_unsubscribe();
+  }
 
 int main(void) {
   init();
