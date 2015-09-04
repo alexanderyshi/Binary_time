@@ -6,9 +6,11 @@ static TextLayer *s_time_layer;
 static Layer *s_graphics_layer;
 static int num_hour = 0;
 static int num_min = 0;
+static int num_second = 0;
 static int debug_hide_time = 0;
 #define IC_Colour ((uint8_t)0b11000001)
 #define PM_Light_Colour  ((uint8_t)0b11001101)
+#define Second_Light_Colour ((uint8_t)0b11001001)
 #define Min_Light_Colour ((uint8_t)0b11110010)
 #define Hour_Light_Colour ((uint8_t)0b11100011)
 #define Pin_Colour ((uint8_t)0b11101010)
@@ -17,9 +19,13 @@ static int debug_hide_time = 0;
 #define Dawn_Colour ((uint8_t)0b11100110)
 #define Day_Colour ((uint8_t)0b11001011)
 #define Noon_Colour ((uint8_t)0b11101111)
+#define SCREEN_HEIGHT 168
+#define SCREEN_WIDTH 144
 
 //TODO: change all hard-coded operations in function calls into #define macros
 //TODO: global binary time struct?
+//TODO: daytime colour transition based on time of year, get month and day of year 
+		//on setup (or every time midnight hour is reached?) and then load array full of time diff values
 
 	//function takes 2-char string and converts into an int
 static int int_from_string(char buffer[]) {
@@ -49,6 +55,8 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   
   //update background colour
   //1300 treated as peak of day, sunrise/sunset is roughly 0600-2100 in summer
+  
+  //TODO: change time diff to account for minutes as well so that daylight hours can be more accurately tracked
   unsigned int time_diff = (unsigned int)(num_hour-13>=0 ? num_hour-13 : 13-num_hour);
   if (time_diff >= 8)
   {
@@ -76,7 +84,7 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   //Draw IC pins and binary lights
 	for (int i = 0; i<6; i++)	{
     int x_ = 144/2-40;
-    int y_ = 168/2-55+i%6*20;
+    int y_ = 168/2-55+i*20;
 		graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
 
 		//draw minute pins
@@ -126,6 +134,45 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 		}
 	}// end for loop
 	
+	//if on debug time, show seconds
+	//! if the watch is updated to never show debug time, this criteria will need to be replaced by a flag
+	if (!layer_get_hidden((Layer*)s_time_layer)){
+		//draw IC body horizontally on the top
+		graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
+		graphics_fill_rect(ctx, 
+					(GRect){.origin = (GPoint){.x = 144/2-55,.y = 168-5},
+								.size = (GSize){.w = 110,.h = 5}
+						    },
+					2,
+					GCornersAll);
+		
+		//draw seconds pins
+		graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
+		
+		for (int i = 0; i<6; i++)	{
+			int x_ = 17 + 20*i;
+			int y_ = 148;
+			
+			//draw second pins
+			if (num_second >> (5-i) & 1)
+			{
+			  graphics_context_set_fill_color(ctx, (GColor)Second_Light_Colour);
+			  
+			}else{
+				graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
+			}
+				graphics_fill_rect(ctx, 
+								(GRect){.origin = (GPoint){.x = x_,.y = y_},
+										  .size = (GSize){.w = 10,.h = 15}
+										},
+							  1,
+							  GCornersAll);
+    
+		}
+	}
+      
+  
+	
 }//end graphics_update_proc
 
 static void update_time() {
@@ -146,6 +193,7 @@ static void update_time() {
   //convert timestamp into decimal value
   num_hour = int_from_string(hour_string);
   num_min = int_from_string(min_string);
+  num_second = int_from_string(second_string);
   
   //hide the debug time string if it has been visible for 5 seconds
   if (!layer_get_hidden((Layer*)s_time_layer)){
