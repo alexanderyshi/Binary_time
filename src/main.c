@@ -9,7 +9,7 @@ static int num_min = 0;
 static int num_second = 0;
 static int debug_hide_time = 0;
 //TODO: make this into a .js configured option
-static char show_debug_time = 0; /* flag to allow debug time to show */
+static char show_debug_time = 1; /* flag to allow debug time to show */
 #define IC_Colour ((uint8_t)0b11000001)
 #define PM_Light_Colour  ((uint8_t)0b11001101)
 #define Second_Light_Colour ((uint8_t)0b11001001)
@@ -197,17 +197,20 @@ static void update_time() {
   strftime(hour_string, sizeof("00"), "%H", tick_time);
   strftime(min_string, sizeof("00"), "%M", tick_time);
   strftime(debug_string, sizeof("00:00"), "%H%M", tick_time);
+  strftime(second_string, sizeof("00"), "%S", tick_time);
+    
   //convert timestamp into decimal value
   num_hour = int_from_string(hour_string);
   num_min = int_from_string(min_string);
+  num_second = int_from_string(second_string);
   
   //hide the debug time string if it has been visible for 5 seconds
-  if (show_debug_time){
-    if (int_from_string(second_string)>debug_hide_time && !layer_get_hidden((Layer*)s_time_layer))
-      strftime(second_string, sizeof("00"), "%S", tick_time);
-      num_second = int_from_string(second_string);
-      layer_set_hidden((Layer*)s_time_layer, true);
+
+  if (int_from_string(second_string)>debug_hide_time && !layer_get_hidden((Layer*)s_time_layer))
+  {
+    layer_set_hidden((Layer*)s_time_layer, true);
   }
+      
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, debug_string);
 }
