@@ -8,10 +8,11 @@ static int num_hour = 0;
 static int num_min = 0;
 static int num_second = 0;
 static int debug_hide_time = 0;
+static int mmdd_hide_time = -1;
 //TODO: make this into a .js configured option
 static char show_debug_time = 1; /* flag to allow debug time to show */
 #define IC_Colour ((uint8_t)0b11000001)
-#define PM_Light_Colour  ((uint8_t)0b11001101)
+#define MMDD_Light_Colour  ((uint8_t)0b11001101)
 #define Second_Light_Colour ((uint8_t)0b11001001)
 #define Min_Light_Colour ((uint8_t)0b11110010)
 #define Hour_Light_Colour ((uint8_t)0b11100011)
@@ -34,22 +35,17 @@ static int int_from_string(char buffer[]) {
   return 10*(buffer[0]-'0') + (buffer[1]-'0');
 }
 
-static int is_PM(){
-	return num_hour >= 12;
-}
-
 //on shaking, the debug time will be shown for 5 seconds
 static void tap_handler(AccelAxisType axis, int32_t direction) {
-  if (show_debug_time){
-  //show debug time
-  layer_set_hidden((Layer*)s_time_layer, false);
-  // Get a tm structure
   time_t temp = time(NULL); 
   struct tm *tick_time = localtime(&temp);
   static char second_string[] = "00";
   strftime(second_string, sizeof("00"), "%S", tick_time);
-  debug_hide_time = (int_from_string(second_string)+5)%60;
-    
+  mmdd_hide_time = (int_from_string(second_string)+5)%60;
+  if (show_debug_time){
+    //show debug time
+    layer_set_hidden((Layer*)s_time_layer, false);
+    debug_hide_time = mmdd_hide_time;
   }
 }
 
@@ -124,9 +120,9 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 			
 		}
 		else{
-		  //draw AM/PM pin
-			if (is_PM()){
-        graphics_context_set_fill_color(ctx, (GColor)PM_Light_Colour);
+		  //draw MMDD pin
+			if (mmdd_hide_time > 0){
+        graphics_context_set_fill_color(ctx, (GColor)MMDD_Light_Colour);
       }else{
         graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
       }
@@ -206,8 +202,10 @@ static void update_time() {
   
   //hide the debug time string if it has been visible for 5 seconds
 
-  if (int_from_string(second_string)>debug_hide_time && !layer_get_hidden((Layer*)s_time_layer))
+  if (int_from_string(second_string)>mmdd_hide_time && mmdd_hide_time > 0)
   {
+    mmdd_hide_time = -1;
+    if(show_debug_time)
     layer_set_hidden((Layer*)s_time_layer, true);
   }
       
