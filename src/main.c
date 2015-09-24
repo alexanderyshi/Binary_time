@@ -8,6 +8,8 @@ static int num_hour = 0;
 static int num_min = 0;
 static int num_second = 0;
 static int debug_hide_time = 0;
+//TODO: make this into a .js configured option
+static char show_debug_time = 0; /* flag to allow debug time to show */
 #define IC_Colour ((uint8_t)0b11000001)
 #define PM_Light_Colour  ((uint8_t)0b11001101)
 #define Second_Light_Colour ((uint8_t)0b11001001)
@@ -38,6 +40,7 @@ static int is_PM(){
 
 //on shaking, the debug time will be shown for 5 seconds
 static void tap_handler(AccelAxisType axis, int32_t direction) {
+  if (show_debug_time){
   //show debug time
   layer_set_hidden((Layer*)s_time_layer, false);
   // Get a tm structure
@@ -46,6 +49,8 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
   static char second_string[] = "00";
   strftime(second_string, sizeof("00"), "%S", tick_time);
   debug_hide_time = (int_from_string(second_string)+5)%60;
+    
+  }
 }
 
 static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
@@ -136,6 +141,7 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 	
   //draw IC body horizontally on the top
   graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
+  //rectangle gets drawn past the bottom limit of the screen to prevent the bottom from rounding
   graphics_fill_rect(ctx, 
                      (GRect){.origin = (GPoint){.x = 144/2-55,.y = 168-5},
                        .size = (GSize){.w = 110,.h = 7}
@@ -190,16 +196,16 @@ static void update_time() {
   // Write the current hours and minutes into the buffer
   strftime(hour_string, sizeof("00"), "%H", tick_time);
   strftime(min_string, sizeof("00"), "%M", tick_time);
-  strftime(second_string, sizeof("00"), "%S", tick_time);
   strftime(debug_string, sizeof("00:00"), "%H%M", tick_time);
   //convert timestamp into decimal value
   num_hour = int_from_string(hour_string);
   num_min = int_from_string(min_string);
-  num_second = int_from_string(second_string);
   
   //hide the debug time string if it has been visible for 5 seconds
-  if (!layer_get_hidden((Layer*)s_time_layer)){
-    if (int_from_string(second_string)>debug_hide_time)
+  if (show_debug_time){
+    if (int_from_string(second_string)>debug_hide_time && !layer_get_hidden((Layer*)s_time_layer))
+      strftime(second_string, sizeof("00"), "%S", tick_time);
+      num_second = int_from_string(second_string);
       layer_set_hidden((Layer*)s_time_layer, true);
   }
   // Display this time on the TextLayer
@@ -259,6 +265,8 @@ static void init() {
   window_stack_push(s_main_window, true);
   
   update_time();
+  
+  layer_set_hidden((Layer*)s_time_layer, true);
 }
 
 static void deinit() {
