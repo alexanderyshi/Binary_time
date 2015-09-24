@@ -221,7 +221,7 @@ static void main_window_load(Window *window) {
   layer_set_update_proc(s_graphics_layer, graphics_update_proc);
   
   // Create time TextLayer
-  s_time_layer = text_layer_create(GRect(0, 0, 144, 50));
+  s_time_layer = text_layer_create(GRect(0, 80, 144, 88));
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, (GColor)Text_Colour);
 
