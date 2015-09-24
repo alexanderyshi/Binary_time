@@ -88,12 +88,19 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 	for (int i = 0; i<6; i++)	{
     int x_ = 144/2-40;
     int y_ = 168/2-55+i*20;
-		graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
 
-		//draw minute pins
+		//draw minute/day pins
 		if (num_min >> (5-i) & 1)
 		{
-		  graphics_context_set_fill_color(ctx, (GColor)Min_Light_Colour);
+      //TODO: figure out how to make this into the ternary:
+      // 		  graphics_context_set_fill_color(ctx, (GColor)(mmdd_hide_time == -1 ? Min_Light_Colour:Day_Light_Colour));
+      if (mmdd_hide_time == -1)
+      {
+        graphics_context_set_fill_color(ctx, (GColor)Min_Light_Colour);  
+      }
+      else{
+        graphics_context_set_fill_color(ctx, (GColor)Day_Light_Colour);  
+      }
 		  
 		}else{
       graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
@@ -105,11 +112,19 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 						  1,
 						  GCornersAll);
     
-		//draw hour pins
+		//draw hour/month pins
 		if (i >0){
 			if (num_hour >> (5-i) & 1){
-        graphics_context_set_fill_color(ctx, (GColor)Hour_Light_Colour);
-      }
+        //TODO: figure out how to make this into the ternary:
+        //      graphics_context_set_fill_color(ctx, (GColor)(mmdd_hide_time == -1 ? Hour_Light_Colour:Month_Light_Colour));
+        if (mmdd_hide_time == -1)
+        {
+          graphics_context_set_fill_color(ctx, (GColor)Hour_Light_Colour);  
+        }
+        else{
+          graphics_context_set_fill_color(ctx, (GColor)Month_Light_Colour);  
+        }
+        }
       else{
         graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);  
       }
