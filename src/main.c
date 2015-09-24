@@ -138,7 +138,7 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
   graphics_fill_rect(ctx, 
                      (GRect){.origin = (GPoint){.x = 144/2-55,.y = 168-5},
-                       .size = (GSize){.w = 110,.h = 5}
+                       .size = (GSize){.w = 110,.h = 7}
                             },
                      2,
                      GCornersAll);
