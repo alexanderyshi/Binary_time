@@ -13,7 +13,7 @@ static int mmdd_hide_time = -1;
 static char show_debug_time = 1; /* flag to allow debug time to show */
 #define IC_Colour ((uint8_t)0b11000001)
 #define MMDD_Light_Colour  ((uint8_t)0b11001101)
-#define Second_Light_Colour ((uint8_t)0b11001001)
+#define Second_Light_Colour ((uint8_t)0b11010110)
 #define Min_Light_Colour ((uint8_t)0b11110010)
 #define Hour_Light_Colour ((uint8_t)0b11100011)
 #define Day_Light_Colour ((uint8_t)0b11001011)
