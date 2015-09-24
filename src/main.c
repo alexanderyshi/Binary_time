@@ -134,41 +134,43 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 		}
 	}// end for loop
 	
-	//if on debug time, show seconds
+  //draw IC body horizontally on the top
+  graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
+  graphics_fill_rect(ctx, 
+                     (GRect){.origin = (GPoint){.x = 144/2-55,.y = 168-5},
+                       .size = (GSize){.w = 110,.h = 5}
+                            },
+                     2,
+                     GCornersAll);
+
+  //draw seconds pins
+  graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
+
+  for (int i = 0; i<6; i++)	
+  {
+    int x_ = 17 + 20*i;
+    int y_ = 148;
+
+    //draw second pins
+    if (num_second >> (5-i) & 1)
+    {
+      graphics_context_set_fill_color(ctx, (GColor)Second_Light_Colour);
+
+    }else{
+      graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
+    }
+    graphics_fill_rect(ctx, 
+                       (GRect){.origin = (GPoint){.x = x_,.y = y_},
+                         .size = (GSize){.w = 10,.h = 15}
+                              },
+                       1,
+                       GCornersAll);
+
+  }
+  
+	//TODO: if on debug time, show month/day
 	//! if the watch is updated to never show debug time, this criteria will need to be replaced by a flag
 	if (!layer_get_hidden((Layer*)s_time_layer)){
-		//draw IC body horizontally on the top
-		graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
-		graphics_fill_rect(ctx, 
-					(GRect){.origin = (GPoint){.x = 144/2-55,.y = 168-5},
-								.size = (GSize){.w = 110,.h = 5}
-						    },
-					2,
-					GCornersAll);
-		
-		//draw seconds pins
-		graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
-		
-		for (int i = 0; i<6; i++)	{
-			int x_ = 17 + 20*i;
-			int y_ = 148;
-			
-			//draw second pins
-			if (num_second >> (5-i) & 1)
-			{
-			  graphics_context_set_fill_color(ctx, (GColor)Second_Light_Colour);
-			  
-			}else{
-				graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
-			}
-				graphics_fill_rect(ctx, 
-								(GRect){.origin = (GPoint){.x = x_,.y = y_},
-										  .size = (GSize){.w = 10,.h = 15}
-										},
-							  1,
-							  GCornersAll);
-    
-		}
 	}
       
   
