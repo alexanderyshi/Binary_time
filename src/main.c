@@ -12,8 +12,9 @@ static int num_second = 0;
 static int debug_hide_time = 0;
 static int mmdd_hide_time = -1;
 //TODO: make this into a .js configured option
-static char show_debug_time = 1; /* flag to allow debug time to show */
+static char show_debug_time = 1; /* flag to allow debug time to show (see DESIGN:)*/
 #define IC_Colour ((uint8_t)0b11000001)
+#define Text_Colour ((uint8_t)0b11111111)
 #define MMDD_Light_Colour  ((uint8_t)0b11001101)
 #define Second_Light_Colour ((uint8_t)0b11010110)
 #define Min_Light_Colour ((uint8_t)0b11110010)
@@ -21,18 +22,36 @@ static char show_debug_time = 1; /* flag to allow debug time to show */
 #define Day_Light_Colour ((uint8_t)0b11000011)
 #define Month_Light_Colour ((uint8_t)0b11001001)
 #define Pin_Colour ((uint8_t)0b11101010)
-#define Text_Colour ((uint8_t)0b11111111)
 #define Night_Colour ((uint8_t)0b11000110)
 #define Dawn_Colour ((uint8_t)0b11100110)
 #define Day_Colour ((uint8_t)0b11001011)
 #define Noon_Colour ((uint8_t)0b11101111)
 #define SCREEN_HEIGHT 168
 #define SCREEN_WIDTH 144
+#define IC_WIDTH 40
+#define IC_HEIGHT 110
+#define IC_CORNER_RADIUS 2
+#define PIN_CORNER_RADIUS 2
+#define PIN_OFFSET 20
+#define PIN_WIDTH 20
+#define PIN_HEIGHT 10
+#define PIN_SCALE (3.0/4)
+  
+  
 
-//TODO: change all hard-coded operations in function calls into #define macros
-//TODO: global binary time struct?
-//TODO: daytime colour transition based on time of year, get month and day of year 
-		//on setup (or every time midnight hour is reached?) and then load array full of time diff values
+//TODO: 
+//global binary time struct, put colour constants into enums/structs
+//change all hard-coded operations in function calls into #define macros
+//create config accessor .js file
+  //show debug time y/n
+  //static silverscreen style background or time of day colour
+  //include weather on shake
+//daytime colour transition based on time of year from web sunrise/sunset time
+	//load an array with time offset values on setup + every time midnight hour is reached 
+
+//DESIGN:
+  //keep debug time as an easy to read feature for when the watch is prone to shake, i.e. running
+  
 
 	//function takes 2-char string and converts into an int
 static int int_from_string(char buffer[]) {
@@ -80,43 +99,30 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   //Draw IC body
   graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
   graphics_fill_rect(ctx, 
-					(GRect){.origin = (GPoint){.x = 144/2-20,.y = 168/2-55},
-								.size = (GSize){.w = 40,.h = 110}
+					(GRect){.origin = (GPoint){.x = SCREEN_WIDTH/2-IC_WIDTH/2,.y = SCREEN_HEIGHT/2-IC_HEIGHT/2},
+								.size = (GSize){.w = IC_WIDTH,.h = IC_HEIGHT}
 						    },
-					2,
+					IC_CORNER_RADIUS,
 					GCornersAll);
+  	
+  //draw seconds IC body horizontally on the bottom
+  graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
+  //rectangle gets drawn past the bottom limit of the screen to prevent the bottom from rounding
+  graphics_fill_rect(ctx, 
+                     (GRect){.origin = (GPoint){.x = SCREEN_WIDTH/2-IC_HEIGHT/2,.y = SCREEN_HEIGHT-IC_WIDTH/8},
+                       .size = (GSize){.w = IC_HEIGHT,.h = IC_WIDTH/8+IC_CORNER_RADIUS}
+                            },
+                     IC_CORNER_RADIUS,
+                     GCornersAll);
   
   int right_pins = mmdd_hide_time > 0 ? num_day : num_min;
   int left_pins = mmdd_hide_time > 0 ? num_month : num_hour;
   //Draw IC pins and binary lights
 	for (int i = 0; i<6; i++)	{
-    int x_ = 144/2-40;
-    int y_ = 168/2-55+i*20;
+    int x_ = SCREEN_WIDTH/2-IC_WIDTH/2-PIN_WIDTH;
+    int y_ = SCREEN_HEIGHT/2-IC_HEIGHT/2+i*PIN_OFFSET;
     
-		//draw minute/day pins
-		if (right_pins >> (5-i) & 1)
-		{
-      //TODO: figure out how to make this into the ternary:
-      // 		  graphics_context_set_fill_color(ctx, (GColor)(mmdd_hide_time == -1 ? Min_Light_Colour:Day_Light_Colour));
-      if (mmdd_hide_time == -1)
-      {
-        graphics_context_set_fill_color(ctx, (GColor)Min_Light_Colour);  
-      }
-      else{
-        graphics_context_set_fill_color(ctx, (GColor)Day_Light_Colour);  
-      }
-		  
-		}else{
-      graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
-    }
-		graphics_fill_rect(ctx, 
-							(GRect){.origin = (GPoint){.x = x_ + 60,.y = y_},
-									  .size = (GSize){.w = 20,.h = 10}
-									},
-						  1,
-						  GCornersAll);
-    
-		//draw hour/month pins
+    		//draw hour/month pins
 		if (i >0){
 			if (left_pins >> (5-i) & 1){
         //TODO: figure out how to make this into the ternary:
@@ -134,9 +140,9 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
       }
       graphics_fill_rect(ctx, 
                          (GRect){.origin = (GPoint){.x = x_,.y = y_},
-                           .size = (GSize){.w = 20,.h = 10}
+                           .size = (GSize){.w = PIN_WIDTH,.h = PIN_HEIGHT}
                                 },
-                         1,
+                         PIN_CORNER_RADIUS,
                          GCornersAll);
 			
 		}
@@ -149,30 +155,38 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
       }
       graphics_fill_rect(ctx, 
                          (GRect){.origin = (GPoint){.x = x_,.y = y_},
-                           .size = (GSize){.w = 20,.h = 10}
+                           .size = (GSize){.w = PIN_WIDTH,.h = PIN_HEIGHT}
                                 },
                          1,
                          GCornersAll);
 		}
-	}// end for loop
-	
-  //draw IC body horizontally on the top
-  graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
-  //rectangle gets drawn past the bottom limit of the screen to prevent the bottom from rounding
-  graphics_fill_rect(ctx, 
-                     (GRect){.origin = (GPoint){.x = 144/2-55,.y = 168-5},
-                       .size = (GSize){.w = 110,.h = 7}
-                            },
-                     2,
-                     GCornersAll);
-
+		//draw minute/day pins
+		if (right_pins >> (5-i) & 1)
+		{
+      //TODO: figure out how to make this into the ternary:
+      // 		  graphics_context_set_fill_color(ctx, (GColor)(mmdd_hide_time == -1 ? Min_Light_Colour:Day_Light_Colour));
+      if (mmdd_hide_time == -1)
+      {
+        graphics_context_set_fill_color(ctx, (GColor)Min_Light_Colour);  
+      }
+      else{
+        graphics_context_set_fill_color(ctx, (GColor)Day_Light_Colour);  
+      }
+		  
+		}else{
+      graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
+    }
+		graphics_fill_rect(ctx, 
+							(GRect){.origin = (GPoint){.x = x_ + IC_WIDTH + PIN_WIDTH,.y = y_},
+									  .size = (GSize){.w = PIN_WIDTH,.h = PIN_HEIGHT}
+									},
+						  PIN_CORNER_RADIUS,
+						  GCornersAll);
   //draw seconds pins
   graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
 
-  for (int i = 0; i<6; i++)	
-  {
-    int x_ = 17 + 20*i;
-    int y_ = 148;
+    x_ = SCREEN_WIDTH/2 - IC_HEIGHT/2 + PIN_OFFSET*i;
+    y_ = SCREEN_HEIGHT-IC_WIDTH/8-PIN_WIDTH*PIN_SCALE;
 
     //draw second pins
     if (num_second >> (5-i) & 1)
@@ -184,12 +198,15 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
     }
     graphics_fill_rect(ctx, 
                        (GRect){.origin = (GPoint){.x = x_,.y = y_},
-                         .size = (GSize){.w = 10,.h = 15}
+                         .size = (GSize){.w = PIN_HEIGHT,.h = PIN_WIDTH*PIN_SCALE}
                               },
-                       1,
+                       PIN_CORNER_RADIUS,
                        GCornersAll);
 
-  }
+  
+    
+	}// end for loop
+
   
 	//TODO: if on debug time, show month/day
 	//! if the watch is updated to never show debug time, this criteria will need to be replaced by a flag
@@ -244,9 +261,10 @@ static void update_time() {
 
 static void main_window_load(Window *window) {
   // Graphics layer
-  s_graphics_layer = layer_create(GRect(0, 0, 144, 168));
+  s_graphics_layer = layer_create(GRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
   layer_set_update_proc(s_graphics_layer, graphics_update_proc);
   
+  //TODO: investigate how the GRect exactly defines this text layer boundary
   // Create time TextLayer
   s_time_layer = text_layer_create(GRect(0, 80, 144, 88));
   text_layer_set_background_color(s_time_layer, GColorClear);
