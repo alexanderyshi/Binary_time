@@ -9,8 +9,7 @@ static int num_day = 0;
 static int num_hour = 0;
 static int num_min = 0;
 static int num_second = 0;
-static int debug_hide_time = 0;
-static int mmdd_hide_time = -1;
+static int debug_hide_time = -1;
 //TODO: make this into a .js configured option
 static char show_debug_time = 1; /* flag to allow debug time to show (see DESIGN:)*/
 #define IC_Colour ((uint8_t)0b11000001)
@@ -40,8 +39,6 @@ static char show_debug_time = 1; /* flag to allow debug time to show (see DESIGN
   
 
 //TODO: 
-//global binary time struct, put colour constants into enums/structs
-//change all hard-coded operations in function calls into #define macros
 //create config accessor .js file
   //show debug time y/n
   //static silverscreen style background or time of day colour
@@ -64,11 +61,10 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
   struct tm *tick_time = localtime(&temp);
   static char second_string[] = "00";
   strftime(second_string, sizeof("00"), "%S", tick_time);
-  mmdd_hide_time = (int_from_string(second_string)+5)%60;
+  debug_hide_time = (int_from_string(second_string)+5)%60;
   if (show_debug_time){
     //show debug time
     layer_set_hidden((Layer*)s_time_layer, false);
-    debug_hide_time = mmdd_hide_time;
   }
 }
 
@@ -115,8 +111,8 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
                      IC_CORNER_RADIUS,
                      GCornersAll);
   
-  int right_pins = mmdd_hide_time > 0 ? num_day : num_min;
-  int left_pins = mmdd_hide_time > 0 ? num_month : num_hour;
+  int right_pins = debug_hide_time > 0 ? num_day : num_min;
+  int left_pins = debug_hide_time > 0 ? num_month : num_hour;
   //Draw IC pins and binary lights
 	for (int i = 0; i<6; i++)	{
     int x_ = SCREEN_WIDTH/2-IC_WIDTH/2-PIN_WIDTH;
@@ -126,8 +122,8 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 		if (i >0){
 			if (left_pins >> (5-i) & 1){
         //TODO: figure out how to make this into the ternary:
-        //      graphics_context_set_fill_color(ctx, (GColor)(mmdd_hide_time == -1 ? Hour_Light_Colour:Month_Light_Colour));
-        if (mmdd_hide_time == -1)
+        //      graphics_context_set_fill_color(ctx, (GColor)(debug_hide_time == -1 ? Hour_Light_Colour:Month_Light_Colour));
+        if (debug_hide_time == -1)
         {
           graphics_context_set_fill_color(ctx, (GColor)Hour_Light_Colour);  
         }
@@ -148,7 +144,7 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 		}
 		else{
 		  //draw MMDD pin
-			if (mmdd_hide_time > 0){
+			if (debug_hide_time > 0){
         graphics_context_set_fill_color(ctx, (GColor)MMDD_Light_Colour);
       }else{
         graphics_context_set_fill_color(ctx, (GColor)Pin_Colour);
@@ -164,8 +160,8 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 		if (right_pins >> (5-i) & 1)
 		{
       //TODO: figure out how to make this into the ternary:
-      // 		  graphics_context_set_fill_color(ctx, (GColor)(mmdd_hide_time == -1 ? Min_Light_Colour:Day_Light_Colour));
-      if (mmdd_hide_time == -1)
+      // 		  graphics_context_set_fill_color(ctx, (GColor)(debug_hide_time == -1 ? Min_Light_Colour:Day_Light_Colour));
+      if (debug_hide_time == -1)
       {
         graphics_context_set_fill_color(ctx, (GColor)Min_Light_Colour);  
       }
@@ -239,7 +235,7 @@ static void update_time() {
   num_min = int_from_string(min_string);
   num_second = int_from_string(second_string);
   
-  if(mmdd_hide_time >0){
+  if(debug_hide_time >0){
     static char month_string[] = "00";
     static char day_string[] = "00";
     strftime(month_string, sizeof("00"), "%m", tick_time);
@@ -247,9 +243,9 @@ static void update_time() {
     num_month = int_from_string(month_string);
     num_day = int_from_string(day_string);
     //hide the debug time string if it has been visible for 5 seconds
-    if (int_from_string(second_string)>mmdd_hide_time)
+    if (int_from_string(second_string)>debug_hide_time)
     {
-      mmdd_hide_time = -1;
+      debug_hide_time = -1;
       if(show_debug_time)
       layer_set_hidden((Layer*)s_time_layer, true);
     }
