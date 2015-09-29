@@ -219,7 +219,6 @@ static void update_time() {
   struct tm *tick_time = localtime(&temp);
 
   // Create a long-lived buffer
-
   static char hour_string[] = "00";
   static char min_string[] = "00";
   static char second_string[] = "00";
@@ -235,18 +234,22 @@ static void update_time() {
   num_min = int_from_string(min_string);
   num_second = int_from_string(second_string);
   
-  if(debug_hide_time >0){
+  //update month and day at midnight
+  //if all three are zero, then update month/day int
+  if (!(num_hour || num_min || num_second)){
     static char month_string[] = "00";
     static char day_string[] = "00";
-    strftime(month_string, sizeof("00"), "%m", tick_time);
+	  strftime(month_string, sizeof("00"), "%m", tick_time);
     strftime(day_string, sizeof("00"), "%d", tick_time);
-    num_month = int_from_string(month_string);
-    num_day = int_from_string(day_string);
+	  num_month = int_from_string(month_string);
+	  num_day = int_from_string(day_string);
+  }
+  
+  if(show_debug_time){
     //hide the debug time string if it has been visible for 5 seconds
-    if (int_from_string(second_string)>debug_hide_time)
+    if (num_second>debug_hide_time && debug_hide_time >0)
     {
       debug_hide_time = -1;
-      if(show_debug_time)
       layer_set_hidden((Layer*)s_time_layer, true);
     }
   }
@@ -311,6 +314,19 @@ static void init() {
   update_time();
   
   layer_set_hidden((Layer*)s_time_layer, true);
+  
+  //first time month and day
+  // Get a tm structure
+  time_t temp = time(NULL); 
+  struct tm *tick_time = localtime(&temp);
+
+  //update month and day 
+	static char month_string[] = "00";
+	static char day_string[] = "00";
+	strftime(month_string, sizeof("00"), "%m", tick_time);
+	strftime(day_string, sizeof("00"), "%d", tick_time);
+	num_month = int_from_string(month_string);
+	num_day = int_from_string(day_string);
 }
 
 static void deinit() {
