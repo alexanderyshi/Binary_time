@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-  <title>Slate Example Configuration</title>
+  <title>BINARY TIME CONFIGURATION</title>
   <link rel='stylesheet' type='text/css' href='css/slate.min.css'>
   <script src='js/slate.min.js'></script>
   <style>
@@ -18,39 +18,39 @@
   </head>
 
   <body>
-    <h1 class='title'>Slate Example Configuration</h1>
+    <h1 class='title'>BINARY TIME CONFIGURATION</h1>
 
     <div class='item-container'>
       <div class='item-container-content'>
         <div class='item'>
-          Use this configuration page to choose the settings you would like applied to this app.
+          Configuration page to toggle debug string and weather info displays.
         </div>
       </div>
     </div>
 
     <div class='item-container'>
-      <div class='item-container-header'>Customizability</div>
+      <div class='item-container-header'>EASY WAY OUT</div>
       <div class='item-container-content'>
         <label class='item'>
-          Background Color
-          <input id='background_color_picker' type='text' class='item-color item-color-sunny' value='#000000'>
+          Show Debug Time
+          <input id='debug_time_checkbox' type='checkbox' class='item-toggle'>
         </label>
       </div>
       <div class='item-container-footer'>
-        Choose the app's background color. Used if High Contrast Mode is not selected. Note: Only available on Basalt watches that support many colors.
+        This toggles the display of debug times on shake in the tap handler.
       </div>
     </div>
-
-    <div class='item-container'>
-      <div class='item-container-header'>Accessibility</div>
+	
+	<div class='item-container'>
+      <div class='item-container-header'>HEADS UP BRAH</div>
       <div class='item-container-content'>
         <label class='item'>
-          High Contrast Mode
-          <input id='high_contrast_checkbox' type='checkbox' class='item-toggle'>
+          Show Weather ICs
+          <input id='weather_ic_checkbox' type='checkbox' class='item-toggle'>
         </label>
       </div>
       <div class='item-container-footer'>
-        This switches the app colors to a higher contrast set that promotes readability in low light.
+        This toggles the collection and drawing of ICs to display weather (on shake in tap handler).
       </div>
     </div>
 
@@ -62,17 +62,17 @@
   </body>
   <script>
   function getConfigData() {
-    var backgroundColorPicker = document.getElementById('background_color_picker');
-    var highContrastCheckbox = document.getElementById('high_contrast_checkbox');
+    var showDebugTime = document.getElementById('weather_ic_checkbox');
+    var showWeatherIC = document.getElementById('debug_time_checkbox');
  
     var options = {
-      'background_color': backgroundColorPicker.value,
-      'high_contrast': highContrastCheckbox.checked
+      'show_debug_time': backgroundColorPicker.checked,
+      'show_weather': showWeatherIC.checked
     };
 
     // Save for next launch
-    localStorage['background_color'] = options['background_color'];
-    localStorage['high_contrast'] = options['high_contrast'];
+    localStorage['show_debug_time'] = options['show_debug_time'];
+    localStorage['show_weather'] = options['show_weather'];
 
     console.log('Got options: ' + JSON.stringify(options));
     return options;
@@ -100,13 +100,13 @@
   });
 
   (function() {
-    var backgroundColorPicker = document.getElementById('background_color_picker');
-    var highContrastCheckbox = document.getElementById('high_contrast_checkbox');
-
+	var showDebugTime = document.getElementById('debug_time_checkbox');
+    var showWeatherIC = document.getElementById('weather_ic_checkbox');
+    
     // Load any previously saved configuration, if available
     if(localStorage['high_contrast']) {
-      highContrastCheckbox.checked = JSON.parse(localStorage['high_contrast']);
-      backgroundColorPicker.value = localStorage['background_color'];
+      showDebugTime.checked = JSON.parse(localStorage['show_debug_time']);
+      showWeatherIC.checked = localStorage['show_weather_ic'];
     }
   })();
   </script>
