@@ -15,18 +15,14 @@ Pebble.addEventListener('appmessage',
 
 Pebble.addEventListener('showConfiguration', function(e) {
   // Show config page
-  Pebble.openURL('https://rawgit.com/pebble-examples/design-guides-slate-config/master/config/index.html');
+  Pebble.openURL('https://cdn.rawgit.com/alexanderyshi/Binary_time/master/config/index.html');
 });
 
 Pebble.addEventListener('webviewclosed', function(e) {
-  var configData = JSON.parse(decodeURIComponent(e.response));
+  var configData = {}
+  configData = JSON.parse(decodeURIComponent(e.response));
   console.log('Configuration page returned: ' + JSON.stringify(configData));
-
-//   temperature = configData['KEY_TEMPERATURE'];
-//   show_weather = configData['KEY_SHOW_WEATHER'];
-//   show_debug_time = configData['KEY_SHOW_DEBUG_TIME'];
-
-
+  
   // Send to watchapp
   Pebble.sendAppMessage(configData, function() {
     console.log('Send successful: ' + JSON.stringify(configData));

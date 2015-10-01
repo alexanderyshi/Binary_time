@@ -11,12 +11,11 @@ static int num_min = 0;
 static int num_second = 0;
 static int debug_hide_time = -1;
 //TODO: make this into a .js configured option
-static char show_debug_time = 0; /* flag to allow debug time to show (see DESIGN:)*/
+static char show_debug_time = 1; /* flag to allow debug time to show (see DESIGN:)*/
 //callback constants
-enum {
-  KEY_SHOW_DEBUG_TIME = 0,
-  KEY_TEMPERATURE = 1
-};
+#define KEY_SHOW_DEBUG_TIME 0
+#define KEY_SHOW_WEATHER 1
+#define KEY_TEMPERATURE 2
 #define IC_Colour ((uint8_t)0b11000001)
 #define Text_Colour ((uint8_t)0b11111111)
 #define MMDD_Light_Colour  ((uint8_t)0b11001101)
@@ -305,11 +304,13 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   while(t != NULL) {
     // Which key was received?
     switch(t->key) {
+    case KEY_SHOW_DEBUG_TIME:
+      show_debug_time = (int)t->value;
+      break;
+    case KEY_SHOW_WEATHER:
+      break;
     case KEY_TEMPERATURE:
 
-      break;
-    case KEY_SHOW_DEBUG_TIME:
-      show_debug_time = 1;
       break;
     default:
       APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);

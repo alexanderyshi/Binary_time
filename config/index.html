@@ -2,13 +2,13 @@
 <html>
   <head>
   <title>BINARY TIME CONFIGURATION</title>
-  <link rel='stylesheet' type='text/css' href='css/slate.min.css'>
-  <script src='js/slate.min.js'></script>
+  <link rel="stylesheet" type="text/css" href="css/slate.min.css">
+  <script src="js/slate.min.js"></script>
   <style>
   .title {
     padding: 15px 10px;
     text-transform: uppercase;
-    font-family: 'PT Sans', sans-serif;
+    font-family: "PT Sans", sans-serif;
     font-size: 1.2em;
     font-weight: 500;
     color: #888888;
@@ -18,71 +18,72 @@
   </head>
 
   <body>
-    <h1 class='title'>BINARY TIME CONFIGURATION</h1>
+    <h1 class="title">BINARY TIME CONFIGURATION</h1>
 
-    <div class='item-container'>
-      <div class='item-container-content'>
-        <div class='item'>
+    <div class="item-container">
+      <div class="item-container-content">
+        <div class="item">
           Configuration page to toggle debug string and weather info displays.
         </div>
       </div>
     </div>
 
-    <div class='item-container'>
-      <div class='item-container-header'>EASY WAY OUT</div>
-      <div class='item-container-content'>
-        <label class='item'>
+    <div class="item-container">
+      <div class="item-container-header">EASY WAY OUT</div>
+      <div class="item-container-content">
+        <label class="item">
           Show Debug Time
-          <input id='debug_time_checkbox' type='checkbox' class='item-toggle'>
+          <input id="debug_time_checkbox" type="checkbox" class="item-toggle">
         </label>
       </div>
-      <div class='item-container-footer'>
+      <div class="item-container-footer">
         This toggles the display of debug times on shake in the tap handler.
       </div>
     </div>
 	
-	<div class='item-container'>
-      <div class='item-container-header'>HEADS UP BRAH</div>
-      <div class='item-container-content'>
-        <label class='item'>
+	<div class="item-container">
+      <div class="item-container-header">HEADS UP BRAH</div>
+      <div class="item-container-content">
+        <label class="item">
           Show Weather ICs
-          <input id='weather_ic_checkbox' type='checkbox' class='item-toggle'>
+          <input id="weather_ic_checkbox" type="checkbox" class="item-toggle">
         </label>
       </div>
-      <div class='item-container-footer'>
+      <div class="item-container-footer">
         This toggles the collection and drawing of ICs to display weather (on shake in tap handler).
       </div>
     </div>
 
-    <div class='item-container'>
-      <div class='button-container'>
-        <input id='submit_button' type='button' class='item-button' value='SUBMIT'>
+    <div class="item-container">
+      <div class="button-container">
+        <input id="submit_button" type="button" class="item-button" value="SUBMIT" onclick=function(){window.alert("PLEASE WORK");}>
       </div>
     </div>
   </body>
   <script>
   function getConfigData() {
-    var showDebugTime = document.getElementById('weather_ic_checkbox');
-    var showWeatherIC = document.getElementById('debug_time_checkbox');
+    var showDebugTime = document.getElementById("debug_time_checkbox");
+    var showWeatherIC = document.getElementById("weather_ic_checkbox");
  
     var options = {
-      'show_debug_time': backgroundColorPicker.checked,
-      'show_weather': showWeatherIC.checked
+	  "KEY_SHOW_DEBUG_TIME": showDebugTime.checked,
+      "KEY_SHOW_WEATHER": showWeatherIC.checked,
+	  "KEY_TEMPERATURE": 69
     };
 
     // Save for next launch
-    localStorage['show_debug_time'] = options['show_debug_time'];
-    localStorage['show_weather'] = options['show_weather'];
+    localStorage["KEY_SHOW_DEBUG_TIME"] = options["KEY_SHOW_DEBUG_TIME"];
+    localStorage["KEY_SHOW_WEATHER"] = options["KEY_SHOW_WEATHER"];
 
-    console.log('Got options: ' + JSON.stringify(options));
+    console.log("Got options: " + JSON.stringify(options));
     return options;
   }
 
   function getQueryParam(variable, defaultValue) {
     var query = location.search.substring(1);
-    var vars = query.split('&');
+    var vars = query.split("&");
     for (var i = 0; i < vars.length; i++) {
-      var pair = vars[i].split('=');
+      var pair = vars[i].split("=");
       if (pair[0] === variable) {
         return decodeURIComponent(pair[1]);
       }
@@ -90,24 +91,31 @@
     return defaultValue || false;
   }
  
-  var submitButton = document.getElementById('submit_button');
-  submitButton.addEventListener('click', function() {
-    console.log('Submit');
+  var submitButton = document.getElementById("submit_button");
+  submitButton.onclick = function() {
+    console.log("Submit");
 
     // Set the return URL depending on the runtime environment
-    var return_to = getQueryParam('return_to', 'pebblejs://close#');
+    var return_to = getQueryParam("return_to", "pebblejs://close#");
     document.location = return_to + encodeURIComponent(JSON.stringify(getConfigData()));
+	//document.location = "pebblejs://close#" + encodeURIComponent(JSON.stringify(getConfigData()));
+  };
+  submitButton.addEventListener("click", function() {
+    console.log("Submit");
+
+    // Set the return URL depending on the runtime environment
+    var return_to = getQueryParam("return_to", "pebblejs://close#");
+    document.location = return_to + encodeURIComponent(JSON.stringify(getConfigData()));
+	//document.location = "pebblejs://close#" + encodeURIComponent(JSON.stringify(getConfigData()));
   });
 
   (function() {
-	var showDebugTime = document.getElementById('debug_time_checkbox');
-    var showWeatherIC = document.getElementById('weather_ic_checkbox');
+	var showDebugTime = document.getElementById("debug_time_checkbox");
+    var showWeatherIC = document.getElementById("weather_ic_checkbox");
     
     // Load any previously saved configuration, if available
-    if(localStorage['high_contrast']) {
-      showDebugTime.checked = JSON.parse(localStorage['show_debug_time']);
-      showWeatherIC.checked = localStorage['show_weather_ic'];
-    }
+      showDebugTime.checked = JSON.parse(localStorage["KEY_SHOW_DEBUG_TIME"]);
+      showWeatherIC.checked = localStorage["KEY_SHOW_WEATHER_ic"];
   })();
   </script>
 </html>
