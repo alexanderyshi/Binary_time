@@ -1,7 +1,10 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "KEY_SHOW_DEBUG_TIME": 0,
+        "KEY_TEMPERATURE": 1
+    },
     "capabilities": [
-        ""
+        "configurable"
     ],
     "companyName": "Alexander Shi",
     "longName": "BinaryBus",

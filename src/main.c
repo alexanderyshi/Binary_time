@@ -11,7 +11,12 @@ static int num_min = 0;
 static int num_second = 0;
 static int debug_hide_time = -1;
 //TODO: make this into a .js configured option
-static char show_debug_time = 1; /* flag to allow debug time to show (see DESIGN:)*/
+static char show_debug_time = 0; /* flag to allow debug time to show (see DESIGN:)*/
+//callback constants
+enum {
+  KEY_SHOW_DEBUG_TIME = 0,
+  KEY_TEMPERATURE = 1
+};
 #define IC_Colour ((uint8_t)0b11000001)
 #define Text_Colour ((uint8_t)0b11111111)
 #define MMDD_Light_Colour  ((uint8_t)0b11001101)
@@ -292,6 +297,31 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
 }
 
+static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+  // Read first item
+  Tuple *t = dict_read_first(iterator);
+
+  // For all items
+  while(t != NULL) {
+    // Which key was received?
+    switch(t->key) {
+    case KEY_TEMPERATURE:
+
+      break;
+    case KEY_SHOW_DEBUG_TIME:
+      show_debug_time = 1;
+      break;
+    default:
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
+      break;
+    }
+
+    // Look for next item
+    t = dict_read_next(iterator);
+  }
+}
+
+
 static void init() {
   // Create main Window element and assign to pointer
   s_main_window = window_create();
@@ -314,6 +344,12 @@ static void init() {
   update_time();
   
   layer_set_hidden((Layer*)s_time_layer, true);
+  
+  //register for callbacks 
+  app_message_register_inbox_received(inbox_received_callback);
+  // Open AppMessage
+	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+
   
   //first time month and day
   // Get a tm structure
