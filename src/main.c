@@ -250,14 +250,12 @@ static void update_time() {
 	  num_day = int_from_string(day_string);
   }
   
-  if(show_debug_time){
     //hide the debug time string if it has been visible for 5 seconds
     if (num_second>debug_hide_time && debug_hide_time >0)
     {
       debug_hide_time = -1;
       layer_set_hidden((Layer*)s_time_layer, true);
     }
-  }
   
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, debug_string);
