@@ -15,7 +15,7 @@ Pebble.addEventListener('appmessage',
 
 Pebble.addEventListener('showConfiguration', function(e) {
   // Show config page
-  Pebble.openURL('https://cdn.rawgit.com/alexanderyshi/Binary_time/master/config/index.html');
+  Pebble.openURL('https://rawgit.com/alexanderyshi/Binary_time/master/config/index.html');
 });
 
 Pebble.addEventListener('webviewclosed', function(e) {
