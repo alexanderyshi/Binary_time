@@ -62,12 +62,12 @@
   </body>
   <script>
   function getConfigData() {
-    var showDebugTime = document.getElementById("debug_time_checkbox");
-    var showWeatherIC = document.getElementById("weather_ic_checkbox");
+    var showDebugTime = document.getElementById("debug_time_checkbox").checked == true ? 1 : 0;
+    var showWeatherIC = document.getElementById("weather_ic_checkbox").checked == true ? 1 : 0;
  
     var options = {
-	  "KEY_SHOW_DEBUG_TIME": showDebugTime.checked,
-      "KEY_SHOW_WEATHER": showWeatherIC.checked,
+	  "KEY_SHOW_DEBUG_TIME": showDebugTime,
+      "KEY_SHOW_WEATHER": showWeatherIC,
 	  "KEY_TEMPERATURE": 69
     };
 

@@ -12,6 +12,7 @@ static int num_second = 0;
 static int debug_hide_time = -1;
 //TODO: make this into a .js configured option
 static char show_debug_time = 1; /* flag to allow debug time to show (see DESIGN:)*/
+static char show_weather_ic = 1;
 //callback constants
 #define KEY_SHOW_DEBUG_TIME 0
 #define KEY_SHOW_WEATHER 1
@@ -308,6 +309,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
       show_debug_time = (int)t->value;
       break;
     case KEY_SHOW_WEATHER:
+	  show_weather_ic = (int)t->value;
       break;
     case KEY_TEMPERATURE:
 
