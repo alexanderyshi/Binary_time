@@ -306,7 +306,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     // Which key was received?
     switch(t->key) {
     case KEY_SHOW_DEBUG_TIME:
-      show_debug_time = (int)t->value;
+      show_debug_time = t->value->uint32;  
+      APP_LOG(APP_LOG_LEVEL_ERROR, "Reading value %s", t->value->cstring);
       break;
     case KEY_SHOW_WEATHER:
 	  show_weather_ic = (int)t->value;
