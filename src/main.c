@@ -15,7 +15,7 @@ static volatile int show_debug_time = 1; /* flag to allow debug time to show (se
 static volatile int show_weather_ic = 0;
 static volatile int show_seconds_ic = 0;
 static volatile int show_battery_ic = 0;
-static volatile int show_fancy_background_ic = 0;
+static volatile int show_fancy_background = 0;
 //callback constants
 #define KEY_SHOW_DEBUG_TIME           0
 #define KEY_SHOW_WEATHER              1
@@ -310,50 +310,60 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   // Read first item
-  // Tuple *t = dict_read_first(iterator);
+  Tuple *t = dict_read_first(iterator);
 
-  // // For all items
-  // while(t != NULL) {
-  //   // Which key was received?
-  //   switch(t->key) {
-  //     case KEY_SHOW_DEBUG_TIME:
-  //       show_debug_time = t->value->int32;  
-  //       break;
-  //     case KEY_SHOW_WEATHER:
-  //       show_weather_ic = t->value->int32;
-  //       break;
-  //     case KEY_SHOW_SECONDS:
-  //       show_seconds_ic = t->value->int32;
-  //       break;
-  //     case KEY_SHOW_BATTERY:
-  //       show_battery_ic = t->value->int32;
-  //       break;
-  //     case KEY_SHOW_FANCY_BACKGROUND:
-  //       show_fancy_background_ic = t->value->int32;
-  //       break;
-  //     default:
-  //       APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
-  //       break;
-  //   }
-  //   // Look for next item
-  //   t = dict_read_next(iterator);
+  // For all items
+  while(t != NULL) {
+    // Which key was received?
+    switch(t->key) {
+      case KEY_SHOW_DEBUG_TIME:
+        show_debug_time = t->value->int32;  
+        break;
+      case KEY_SHOW_WEATHER:
+        show_weather_ic = t->value->int32;
+        break;
+      case KEY_SHOW_SECONDS:
+        show_seconds_ic = t->value->int32;
+        break;
+      case KEY_SHOW_BATTERY:
+        show_battery_ic = t->value->int32;
+        break;
+      case KEY_SHOW_FANCY_BACKGROUND:
+        show_fancy_background = t->value->int32;
+        break;
+      default:
+        APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
+        break;
+    }
+    // Look for next item
+    t = dict_read_next(iterator);
 
+  }
+
+  // Tuple *debug_tuple = dict_find(iterator, KEY_SHOW_DEBUG_TIME);
+  // if(debug_tuple) {
+  //   show_debug_time = debug_tuple->value->int32;
   // }
 
-  Tuple *debug_tuple = dict_find(iterator, KEY_SHOW_DEBUG_TIME);
-  if(debug_tuple) {
-    show_debug_time = debug_tuple->value->int32;
-  }
+  // Tuple *weather_tuple = dict_find(iterator, KEY_SHOW_WEATHER);
+  // if(weather_tuple) {
+  //   show_weather_ic = weather_tuple->value->int32;
+  // }
 
-  Tuple *weather_tuple = dict_find(iterator, KEY_SHOW_WEATHER);
-  if(weather_tuple) {
-    show_weather_ic = weather_tuple->value->int32;
-  }
+  // Tuple *seconds_tuple = dict_find(iterator, KEY_SHOW_SECONDS);
+  // if(seconds_tuple) {
+  //   show_seconds_ic = seconds_tuple->value->int32;
+  // }
 
-  Tuple *seconds_tuple = dict_find(iterator, KEY_SHOW_SECONDS);
-  if(seconds_tuple) {
-    show_seconds_ic = seconds_tuple->value->int32;
-  }
+  // Tuple *battery_tuple = dict_find(iterator, KEY_SHOW_BATTERY);
+  // if(battery_tuple) {
+  //   show_battery_ic = battery_tuple->value->int32;
+  // }
+
+  // Tuple *fancy_bg_tuple = dict_find(iterator, KEY_SHOW_FANCY_BACKGROUND);
+  // if(fancy_bg_tuple) {
+  //   show_fancy_background = fancy_bg_tuple->value->int32;
+  // }
 }
 
 
