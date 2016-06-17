@@ -11,11 +11,11 @@ static int num_min = 0;
 static int num_second = 0;
 static int debug_hide_time = -1;
 //TODO: make this into a .js configured option
-static char show_debug_time = 1; /* flag to allow debug time to show (see DESIGN:)*/
-static char show_weather_ic = 1;
-static char show_seconds_ic = 1;
-static char show_battery_ic = 1;
-static char show_fancy_background_ic = 1;
+static volatile int show_debug_time = 1; /* flag to allow debug time to show (see DESIGN:)*/
+static volatile int show_weather_ic = 0;
+static volatile int show_seconds_ic = 0;
+static volatile int show_battery_ic = 0;
+static volatile int show_fancy_background_ic = 0;
 //callback constants
 #define KEY_SHOW_DEBUG_TIME           0
 #define KEY_SHOW_WEATHER              1
@@ -52,7 +52,7 @@ static char show_fancy_background_ic = 1;
   
 
 //TODO: 
-
+//clean up display of debug time
 //battery IC on top
 //static silverscreen style background or time of day colour
 //hide seconds config
@@ -226,7 +226,9 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   
   update_background_color(this_layer, ctx);  
   draw_time_IC(this_layer, ctx, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
-  draw_seconds_IC(this_layer, ctx, SCREEN_WIDTH/2, SCREEN_HEIGHT+IC_WIDTH/4);
+  if(show_seconds_ic == 1){
+    draw_seconds_IC(this_layer, ctx, SCREEN_WIDTH/2, SCREEN_HEIGHT+IC_WIDTH/4);
+  }
 }//end graphics_update_proc
 
 static void update_time() {
@@ -308,34 +310,49 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   // Read first item
-  Tuple *t = dict_read_first(iterator);
+  // Tuple *t = dict_read_first(iterator);
 
-  // For all items
-  while(t != NULL) {
-    // Which key was received?
-    switch(t->key) {
-    case KEY_SHOW_DEBUG_TIME:
-      show_debug_time = t->value->uint32;  
-      break;
-    case KEY_SHOW_WEATHER:
-      show_weather_ic = t->value->uint32;
-      break;
-    case KEY_SHOW_SECONDS:
-      show_seconds_ic = t->value->uint32;
-      break;
-    case KEY_SHOW_BATTERY:
-      show_battery_ic = t->value->uint32;
-      break;
-    case KEY_SHOW_FANCY_BACKGROUND:
-      show_fancy_background_ic = t->value->uint32;
-      break;
-    default:
-      APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
-      break;
-    }
+  // // For all items
+  // while(t != NULL) {
+  //   // Which key was received?
+  //   switch(t->key) {
+  //     case KEY_SHOW_DEBUG_TIME:
+  //       show_debug_time = t->value->int32;  
+  //       break;
+  //     case KEY_SHOW_WEATHER:
+  //       show_weather_ic = t->value->int32;
+  //       break;
+  //     case KEY_SHOW_SECONDS:
+  //       show_seconds_ic = t->value->int32;
+  //       break;
+  //     case KEY_SHOW_BATTERY:
+  //       show_battery_ic = t->value->int32;
+  //       break;
+  //     case KEY_SHOW_FANCY_BACKGROUND:
+  //       show_fancy_background_ic = t->value->int32;
+  //       break;
+  //     default:
+  //       APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
+  //       break;
+  //   }
+  //   // Look for next item
+  //   t = dict_read_next(iterator);
 
-    // Look for next item
-    t = dict_read_next(iterator);
+  // }
+
+  Tuple *debug_tuple = dict_find(iterator, KEY_SHOW_DEBUG_TIME);
+  if(debug_tuple) {
+    show_debug_time = debug_tuple->value->int32;
+  }
+
+  Tuple *weather_tuple = dict_find(iterator, KEY_SHOW_WEATHER);
+  if(weather_tuple) {
+    show_weather_ic = weather_tuple->value->int32;
+  }
+
+  Tuple *seconds_tuple = dict_find(iterator, KEY_SHOW_SECONDS);
+  if(seconds_tuple) {
+    show_seconds_ic = seconds_tuple->value->int32;
   }
 }
 

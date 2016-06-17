@@ -108,12 +108,13 @@
     var showBatteryIC = document.getElementById("battery_ic_checkbox").checked == true ? 1 : 0;
     var showFancyBackground = document.getElementById("fancy_background_checkbox").checked == true ? 1 : 0;
 
+    //!!! these tuple strings are defined in appinfo.json !!!
     var options = {
 	  "KEY_SHOW_DEBUG_TIME": showDebugTime,
     "KEY_SHOW_WEATHER": showWeatherIC,
-    "KEY_SHOW_SECONDS" : showSecondsIC,
-    "KEY_SHOW_BATTERY" : showBatteryIC,
-    "KEY_SHOW_FANCY_BACKGROUND" : showFancyBackground,
+    "KEY_SHOW_SECONDS": showSecondsIC,
+    "KEY_SHOW_BATTERY": showBatteryIC,
+    "KEY_SHOW_FANCY_BACKGROUND": showFancyBackground
     };
 
     // Save for next launch
