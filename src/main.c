@@ -13,10 +13,15 @@ static int debug_hide_time = -1;
 //TODO: make this into a .js configured option
 static char show_debug_time = 1; /* flag to allow debug time to show (see DESIGN:)*/
 static char show_weather_ic = 1;
+static char show_seconds_ic = 1;
+static char show_battery_ic = 1;
+static char show_fancy_background_ic = 1;
 //callback constants
-#define KEY_SHOW_DEBUG_TIME     0
-#define KEY_SHOW_WEATHER        1
-#define KEY_TEMPERATURE         2
+#define KEY_SHOW_DEBUG_TIME           0
+#define KEY_SHOW_WEATHER              1
+#define KEY_SHOW_SECONDS              2
+#define KEY_SHOW_BATTERY              3
+#define KEY_SHOW_FANCY_BACKGROUND     4
 //colours
 #define IC_Colour               ((uint8_t)0b11000001)
 #define Text_Colour             ((uint8_t)0b11111111)
@@ -313,10 +318,16 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
       show_debug_time = t->value->uint32;  
       break;
     case KEY_SHOW_WEATHER:
-    show_weather_ic = t->value->uint32;
+      show_weather_ic = t->value->uint32;
       break;
-    case KEY_TEMPERATURE:
-
+    case KEY_SHOW_SECONDS:
+      show_seconds_ic = t->value->uint32;
+      break;
+    case KEY_SHOW_BATTERY:
+      show_battery_ic = t->value->uint32;
+      break;
+    case KEY_SHOW_FANCY_BACKGROUND:
+      show_fancy_background_ic = t->value->uint32;
       break;
     default:
       APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);

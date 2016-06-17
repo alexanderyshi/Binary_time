@@ -54,33 +54,81 @@
       </div>
     </div>
 
+<div class="item-container">
+  <div class="item-container-header">NEVER NEEDED 'EM ANYWAYS</div>
+  <div class="item-container-content">
+    <label class="item">
+      Show Seconds IC
+      <input id="seconds_ic_checkbox" type="checkbox" class="item-toggle">
+    </label>
+  </div>
+  <div class="item-container-footer">
+    This toggles the seconds IC to save battery.
+  </div>
+</div>
+
+<div class="item-container">
+  <div class="item-container-header">SHOW ME THE JUICE</div>
+  <div class="item-container-content">
+    <label class="item">
+      Show Battery IC
+      <input id="battery_ic_checkbox" type="checkbox" class="item-toggle">
+    </label>
+  </div>
+  <div class="item-container-footer">
+    This toggles the battery display IC.
+  </div>
+</div>
+
+<div class="item-container">
+  <div class="item-container-header">GLAMOUR AND GLITZ</div>
+  <div class="item-container-content">
+    <label class="item">
+      Show Fancy Background 
+      <input id="fancy_background_checkbox" type="checkbox" class="item-toggle">
+    </label>
+  </div>
+  <div class="item-container-footer">
+    Don't you want to be a cool kid?
+  </div>
+</div>
+
     <div class="item-container">
       <div class="button-container">
         <input id="submit_button" type="button" class="item-button" value="SUBMIT" onclick=function(){window.alert("PLEASE WORK");}>
       </div>
     </div>
   </body>
+
   <script>
   function getConfigData() {
     var showDebugTime = document.getElementById("debug_time_checkbox").checked == true ? 1 : 0;
     var showWeatherIC = document.getElementById("weather_ic_checkbox").checked == true ? 1 : 0;
- 
+    var showSecondsIC = document.getElementById("seconds_ic_checkbox").checked == true ? 1 : 0;
+    var showBatteryIC = document.getElementById("battery_ic_checkbox").checked == true ? 1 : 0;
+    var showFancyBackground = document.getElementById("fancy_background_checkbox").checked == true ? 1 : 0;
+
     var options = {
 	  "KEY_SHOW_DEBUG_TIME": showDebugTime,
-      "KEY_SHOW_WEATHER": showWeatherIC,
-	  "KEY_TEMPERATURE": 69
+    "KEY_SHOW_WEATHER": showWeatherIC,
+    "KEY_SHOW_SECONDS" : showSecondsIC,
+    "KEY_SHOW_BATTERY" : showBatteryIC,
+    "KEY_SHOW_FANCY_BACKGROUND" : showFancyBackground,
     };
 
     // Save for next launch
     localStorage["KEY_SHOW_DEBUG_TIME"] = options["KEY_SHOW_DEBUG_TIME"];
     localStorage["KEY_SHOW_WEATHER"] = options["KEY_SHOW_WEATHER"];
+    localStorage["KEY_SHOW_SECONDS"] = options["KEY_SHOW_SECONDS"];
+    localStorage["KEY_SHOW_BATTERY"] = options["KEY_SHOW_BATTERY"];
+    localStorage["KEY_SHOW_FANCY_BACKGROUND"] = options["KEY_SHOW_FANCY_BACKGROUND"];
 
     console.log("Got options: " + JSON.stringify(options));
     return options;
   }
 
   function getQueryParam(variable, defaultValue) {
-    var query = location.search.substring(1);
+    var query = location.search.substring(1); //location is some implementation magic i know nothing about
     var vars = query.split("&");
     for (var i = 0; i < vars.length; i++) {
       var pair = vars[i].split("=");
@@ -110,12 +158,18 @@
   });
 
   (function() {
-	var showDebugTime = document.getElementById("debug_time_checkbox");
+    var showDebugTime = document.getElementById("debug_time_checkbox");
     var showWeatherIC = document.getElementById("weather_ic_checkbox");
+    var showSecondsIC = document.getElementById("seconds_ic_checkbox");
+    var showBatteryIC = document.getElementById("battery_ic_checkbox");
+    var showFancyBackground = document.getElementById("fancy_background_checkbox");
     
     // Load any previously saved configuration, if available
       showDebugTime.checked = JSON.parse(localStorage["KEY_SHOW_DEBUG_TIME"]);
-      showWeatherIC.checked = localStorage["KEY_SHOW_WEATHER_ic"];
+      showWeatherIC.checked = JSON.parse(localStorage["KEY_SHOW_WEATHER"]);
+      showSecondsIC.checked = JSON.parse(localStorage["KEY_SHOW_SECONDS"]);
+      showBatteryIC.checked = JSON.parse(localStorage["KEY_SHOW_BATTERY"]);
+      showFancyBackground.checked = JSON.parse(localStorage["KEY_SHOW_FANCY_BACKGROUND"]);
   })();
   </script>
 </html>
