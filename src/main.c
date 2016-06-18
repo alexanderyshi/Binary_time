@@ -10,8 +10,9 @@ static int num_day = 0;
 static int num_hour = 0;
 static int num_min = 0;
 static int num_second = 0;
-
+// flags
 static int debug_hide_time = -1;
+static int hour_changed = 0;
 static int show_debug_time = 1; 
 static int show_weather_ic = 0;
 static int show_seconds_ic = 0;
@@ -229,7 +230,10 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   //TODO: find std GNU C lib and add to src
   //http://www.gnu.org/software/libc/download.html
   
-  update_background_color(this_layer, ctx);  
+  if(hour_changed)
+  {
+    update_background_color(this_layer, ctx);  
+  }
   draw_time_IC(this_layer, ctx, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
   if(show_seconds_ic == 1){
     draw_seconds_IC(this_layer, ctx, SCREEN_WIDTH/2, SCREEN_HEIGHT+IC_WIDTH/4);
@@ -240,6 +244,7 @@ static void update_time() {
   // Get a tm structure
   time_t temp = time(NULL); 
   struct tm *tick_time = localtime(&temp);
+  int old_hour = num_hour;
 
   // Create a long-lived buffer
   static char hour_string[] = "00";
@@ -256,6 +261,12 @@ static void update_time() {
   num_hour = int_from_string(hour_string);
   num_min = int_from_string(min_string);
   num_second = int_from_string(second_string);
+  
+  //check to see if the hour changed
+  if (num_hour != old_hour)
+  {
+    hour_changed = 1;
+  }
   
   //update month and day at midnight
   //if all three are zero, then update month/day int
@@ -356,7 +367,8 @@ static void init() {
     .load = main_window_load,
     .unload = main_window_unload
   });
-  window_set_background_color(s_main_window, (GColor)Noon_Colour);
+  hour_changed =1;
+  // window_set_background_color(s_main_window, (GColor)Noon_Colour);
   
   // activate  tap handler
   accel_tap_service_subscribe(tap_handler);
