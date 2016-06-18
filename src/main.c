@@ -26,6 +26,7 @@ static int show_fancy_background = 0;
 #define KEY_SHOW_FANCY_BACKGROUND     4
 //colours
 #define IC_Colour               ((uint8_t)0b11000001)
+#define Text_Colour             ((uint8_t)0b11111111)
 
 #define Pin_Colour              ((uint8_t)0b11101010)
 #define MMDD_Pin_Colour       ((uint8_t)0b11001101)
@@ -34,8 +35,6 @@ static int show_fancy_background = 0;
 #define Hour_Pin_Colour       ((uint8_t)0b11100011)
 #define Day_Pin_Colour        ((uint8_t)0b11000011)
 #define Month_Pin_Colour      ((uint8_t)0b11001001)
-
-#define Text_Colour             ((uint8_t)0b11111111)
 
 #define Night_Colour            ((uint8_t)0b11000110)
 #define Dawn_Colour             ((uint8_t)0b11100110)
@@ -213,15 +212,17 @@ static void update_background_color(Layer *this_layer, GContext *ctx) {
 
 };
 
-//on shaking, the debug time will be shown for 5 seconds
+//on shaking, the debug time will be shown for 5 seconds if config is set
 static void tap_handler(AccelAxisType axis, int32_t direction) {
-  time_t temp = time(NULL); 
-  struct tm *tick_time = localtime(&temp);
-  static char second_string[] = "00";
-  strftime(second_string, sizeof("00"), "%S", tick_time);
-  debug_hide_time = (int_from_string(second_string)+5)%60;
   if (show_debug_time){
-    //show debug time
+    //set disable time to 5 seconds from now
+    time_t temp = time(NULL); 
+    struct tm *tick_time = localtime(&temp);
+    static char second_string[] = "00";
+    strftime(second_string, sizeof("00"), "%S", tick_time);
+    debug_hide_time = (int_from_string(second_string)+5)%60;
+
+    //show laer
     layer_set_hidden((Layer*)s_time_layer, false);
   }
 }
