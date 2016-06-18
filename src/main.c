@@ -1,22 +1,23 @@
 #include <pebble.h>
-// #include <cstdlib.h>
 
+//static members
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static Layer *s_graphics_layer;
+
 static int num_month = 0;
 static int num_day = 0;
 static int num_hour = 0;
 static int num_min = 0;
 static int num_second = 0;
+
 static int debug_hide_time = -1;
-//TODO: make this into a .js configured option
-static volatile int show_debug_time = 1; /* flag to allow debug time to show (see DESIGN:)*/
-static volatile int show_weather_ic = 0;
-static volatile int show_seconds_ic = 0;
-static volatile int show_battery_ic = 0;
-static volatile int show_fancy_background = 0;
-//callback constants
+static int show_debug_time = 1; 
+static int show_weather_ic = 0;
+static int show_seconds_ic = 0;
+static int show_battery_ic = 0;
+static int show_fancy_background = 0;
+//config callback constants
 #define KEY_SHOW_DEBUG_TIME           0
 #define KEY_SHOW_WEATHER              1
 #define KEY_SHOW_SECONDS              2
@@ -24,14 +25,17 @@ static volatile int show_fancy_background = 0;
 #define KEY_SHOW_FANCY_BACKGROUND     4
 //colours
 #define IC_Colour               ((uint8_t)0b11000001)
-#define Text_Colour             ((uint8_t)0b11111111)
-#define MMDD_Light_Colour       ((uint8_t)0b11001101)
-#define Second_Light_Colour     ((uint8_t)0b11010110)
-#define Min_Light_Colour        ((uint8_t)0b11110010)
-#define Hour_Light_Colour       ((uint8_t)0b11100011)
-#define Day_Light_Colour        ((uint8_t)0b11000011)
-#define Month_Light_Colour      ((uint8_t)0b11001001)
+
 #define Pin_Colour              ((uint8_t)0b11101010)
+#define MMDD_Pin_Colour       ((uint8_t)0b11001101)
+#define Second_Pin_Colour     ((uint8_t)0b11010110)
+#define Min_Pin_Colour        ((uint8_t)0b11110010)
+#define Hour_Pin_Colour       ((uint8_t)0b11100011)
+#define Day_Pin_Colour        ((uint8_t)0b11000011)
+#define Month_Pin_Colour      ((uint8_t)0b11001001)
+
+#define Text_Colour             ((uint8_t)0b11111111)
+
 #define Night_Colour            ((uint8_t)0b11000110)
 #define Dawn_Colour             ((uint8_t)0b11100110)
 #define Day_Colour              ((uint8_t)0b11001011)
@@ -47,19 +51,20 @@ static volatile int show_fancy_background = 0;
 #define PIN_WIDTH               20
 #define PIN_HEIGHT              10
 //scaling factors
-#define PIN_SCALE               (3.0/4) //used for seconds pins to shrink size
+#define PIN_SCALE               (3.0/4) //used for seconds pins to shrink vertical dimension
   
   
 
 //TODO: 
 //clean up display of debug time
 //battery IC on top
-//static silverscreen style background or time of day colour
-//hide seconds config
+//hide seconds config should actually change the tick handler
 
 //weather on shake
 //daytime colour transition based on time of year from web sunrise/sunset time
   //load an array with time offset values on setup + every time midnight hour is reached 
+
+//static silverscreen style background or time of day colour
 
 //DESIGN:
   //keep debug time as an easy to read feature for when the watch is prone to shake, i.e. running
@@ -150,7 +155,7 @@ static void draw_seconds_IC(Layer *this_layer, GContext *ctx, int hor_coord, int
                      IC_CORNER_RADIUS,
                      GCornersAll);
   //draw seconds pins
-  _draw_horizontal_pins(this_layer, ctx, num_second, hor_coord, vert_coord, 'a', Second_Light_Colour, PIN_SCALE);
+  _draw_horizontal_pins(this_layer, ctx, num_second, hor_coord, vert_coord, 'a', Second_Pin_Colour, PIN_SCALE);
 
 }
 
@@ -166,10 +171,10 @@ static void draw_time_IC(Layer *this_layer, GContext *ctx, int hor_coord, int ve
            
   //choose colours according to debug mode
   int right_pins = debug_hide_time > 0 ? num_day : num_min;
-  uint8_t right_colour = debug_hide_time > 0 ? Day_Light_Colour : Min_Light_Colour;
+  uint8_t right_colour = debug_hide_time > 0 ? Day_Pin_Colour : Min_Pin_Colour;
   int left_pins = debug_hide_time > 0 ? num_month : num_hour;
-  uint8_t left_colour = debug_hide_time > 0 ? Month_Light_Colour : Hour_Light_Colour;
-  uint8_t top_left_colour = debug_hide_time > 0 ? MMDD_Light_Colour : Second_Light_Colour;
+  uint8_t left_colour = debug_hide_time > 0 ? Month_Pin_Colour : Hour_Pin_Colour;
+  uint8_t top_left_colour = debug_hide_time > 0 ? MMDD_Pin_Colour : Second_Pin_Colour;
 
   _draw_vertical_pins(this_layer, ctx, right_pins, hor_coord, vert_coord, 'r', right_colour, 1);
   _draw_vertical_pins(this_layer, ctx, left_pins, hor_coord, vert_coord, 'l', left_colour, 1);
@@ -246,7 +251,7 @@ static void update_time() {
   strftime(min_string, sizeof("00"), "%M", tick_time);
   strftime(debug_string, sizeof("00:00"), "%H%M", tick_time);
   strftime(second_string, sizeof("00"), "%S", tick_time);
-    
+  
   //convert timestamp into decimal value
   num_hour = int_from_string(hour_string);
   num_min = int_from_string(min_string);
@@ -339,31 +344,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     t = dict_read_next(iterator);
 
   }
-
-  // Tuple *debug_tuple = dict_find(iterator, KEY_SHOW_DEBUG_TIME);
-  // if(debug_tuple) {
-  //   show_debug_time = debug_tuple->value->int32;
-  // }
-
-  // Tuple *weather_tuple = dict_find(iterator, KEY_SHOW_WEATHER);
-  // if(weather_tuple) {
-  //   show_weather_ic = weather_tuple->value->int32;
-  // }
-
-  // Tuple *seconds_tuple = dict_find(iterator, KEY_SHOW_SECONDS);
-  // if(seconds_tuple) {
-  //   show_seconds_ic = seconds_tuple->value->int32;
-  // }
-
-  // Tuple *battery_tuple = dict_find(iterator, KEY_SHOW_BATTERY);
-  // if(battery_tuple) {
-  //   show_battery_ic = battery_tuple->value->int32;
-  // }
-
-  // Tuple *fancy_bg_tuple = dict_find(iterator, KEY_SHOW_FANCY_BACKGROUND);
-  // if(fancy_bg_tuple) {
-  //   show_fancy_background = fancy_bg_tuple->value->int32;
-  // }
 }
 
 
