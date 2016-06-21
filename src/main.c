@@ -231,7 +231,6 @@ static void update_background_color(Layer *this_layer, GContext *ctx) {
 
 //on shaking, the debug time will be shown for 5 seconds if config is set
 static void tap_handler(AccelAxisType axis, int32_t direction) {
-  if (show_debug_time){
     //set disable time to 5 seconds from now
     time_t temp = time(NULL); 
     struct tm *tick_time = localtime(&temp);
@@ -239,7 +238,8 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
     strftime(second_string, sizeof("00"), "%S", tick_time);
     debug_hide_time = (int_from_string(second_string)+5)%60;
 
-    //show laer
+    //show debug timelayer
+  if (show_debug_time){
     layer_set_hidden((Layer*)s_time_layer, false);
   }
 }
