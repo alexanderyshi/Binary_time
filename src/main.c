@@ -355,7 +355,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 static void battery_callback(BatteryChargeState state) {
-  battery_level = state.charge_percent;
+  battery_level = state.charge_percent*64/100;
   layer_mark_dirty(s_battery_layer);
 }
 
