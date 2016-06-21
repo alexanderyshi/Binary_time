@@ -4,12 +4,15 @@
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static Layer *s_graphics_layer;
+static Layer *s_battery_layer;
 
 static int num_month = 0;
 static int num_day = 0;
 static int num_hour = 0;
 static int num_min = 0;
 static int num_second = 0;
+static int battery_level = 0;
+
 // flags
 static int debug_hide_time = -1;
 static int hour_changed = 0;
@@ -56,9 +59,9 @@ static int show_fancy_background = 0;
   
 
 //TODO: 
-//clean up display of debug time
-//battery IC on top
 //hide seconds config should actually change the tick handler
+//use seperate layer and update proc for seconds IC (make bg clear)
+  //keep the main time IC layer as the main layer that has a background color filled in
 
 //weather on shake
 //daytime colour transition based on time of year from web sunrise/sunset time
@@ -156,7 +159,19 @@ static void draw_seconds_IC(Layer *this_layer, GContext *ctx, int hor_coord, int
                      GCornersAll);
   //draw seconds pins
   _draw_horizontal_pins(this_layer, ctx, num_second, hor_coord, vert_coord, 'a', Second_Pin_Colour, PIN_SCALE);
+}
 
+static void draw_battery_IC(Layer *this_layer, GContext *ctx, int hor_coord, int vert_coord) {
+  //rectangle gets drawn above the top of the screen to prevent the bottom from rounding
+  graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
+  graphics_fill_rect(ctx, 
+                     (GRect){.origin = (GPoint){.x = hor_coord-IC_HEIGHT/2,.y = vert_coord-IC_WIDTH/2},
+                       .size = (GSize){.w = IC_HEIGHT,.h = IC_WIDTH}
+                            },
+                     IC_CORNER_RADIUS,
+                     GCornersAll);
+  //draw battery pins
+  _draw_horizontal_pins(this_layer, ctx, battery_level, hor_coord, vert_coord, 'b', Second_Pin_Colour, PIN_SCALE);
 }
 
 static void draw_time_IC(Layer *this_layer, GContext *ctx, int hor_coord, int vert_coord){
@@ -241,6 +256,11 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   }
 }//end graphics_update_proc
 
+static void battery_update_proc(Layer *this_layer, GContext *ctx)
+{
+  draw_battery_IC(this_layer, ctx, SCREEN_WIDTH/2, 0-IC_WIDTH/4);
+}
+
 static void update_time() {
   // Get a tm structure
   time_t temp = time(NULL); 
@@ -296,13 +316,14 @@ static void main_window_load(Window *window) {
   s_graphics_layer = layer_create(GRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
   layer_set_update_proc(s_graphics_layer, graphics_update_proc);
   
+  s_battery_layer = layer_create(GRect(0,0, SCREEN_WIDTH, IC_WIDTH/4+PIN_WIDTH*PIN_SCALE));
+  layer_set_update_proc(s_battery_layer, battery_update_proc);
+
   //TODO: investigate how the GRect exactly defines this text layer boundary
   // Create time TextLayer
   s_time_layer = text_layer_create(GRect(0, 80, 144, 88));
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, (GColor)Text_Colour);
-
-  // Improve the layout to be more like a watchface
   text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
   
@@ -317,12 +338,19 @@ static void main_window_unload(Window *window) {
     // Destroy Layers
     text_layer_destroy(s_time_layer);
     layer_destroy(s_graphics_layer);
+    layer_destroy(s_battery_layer);
     s_time_layer = NULL;
     s_graphics_layer = NULL;
+    s_battery_layer = NULL;
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
+}
+
+static void battery_callback(BatteryChargeState state) {
+  battery_level = state.charge_percent;
+  layer_mark_dirty(s_battery_layer);
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
@@ -373,14 +401,18 @@ static void init() {
   
   // activate  tap handler
   accel_tap_service_subscribe(tap_handler);
+  //subscribe to battery state handler service
+  battery_state_service_subscribe(battery_callback);
   // Register with TickTimerService
   tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
 
   // Show the Window on the watch, with animated=true
   window_stack_push(s_main_window, true);
   
+  //get initial values
   update_time();
-  
+  battery_callback(battery_state_service_peek());
+
   layer_set_hidden((Layer*)s_time_layer, true);
   
   //register for callbacks 
