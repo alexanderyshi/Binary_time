@@ -62,6 +62,8 @@ static int show_fancy_background = 0;
 //hide seconds config should actually change the tick handler
 //use seperate layer and update proc for seconds IC (make bg clear)
   //keep the main time IC layer as the main layer that has a background color filled in
+//display 10 values on 6 pins more efficiently
+//hide battery config should actually change the battery service
 
 //weather on shake
 //daytime colour transition based on time of year from web sunrise/sunset time
@@ -170,7 +172,7 @@ static void draw_battery_IC(Layer *this_layer, GContext *ctx, int hor_coord, int
                             },
                      IC_CORNER_RADIUS,
                      GCornersAll);
-  //draw battery pins
+  //draw battery pins - 
   _draw_horizontal_pins(this_layer, ctx, battery_level, hor_coord, vert_coord, 'b', Second_Pin_Colour, PIN_SCALE);
 }
 
@@ -258,7 +260,10 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 
 static void battery_update_proc(Layer *this_layer, GContext *ctx)
 {
-  draw_battery_IC(this_layer, ctx, SCREEN_WIDTH/2, 0-IC_WIDTH/4);
+  if (show_battery_ic ==1)
+  {
+    draw_battery_IC(this_layer, ctx, SCREEN_WIDTH/2, 0-IC_WIDTH/4);
+  }
 }
 
 static void update_time() {
@@ -331,6 +336,7 @@ static void main_window_load(Window *window) {
 
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_get_root_layer(window), s_graphics_layer);
+  layer_add_child(window_get_root_layer(window), s_battery_layer);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
 }
 
