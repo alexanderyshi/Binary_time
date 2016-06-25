@@ -247,7 +247,7 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   if (show_debug_time){
     layer_set_hidden((Layer*)s_time_layer, false);
   }
-  
+
   if(hour_changed)
   {
     update_background_color(this_layer, ctx);  
@@ -260,7 +260,7 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
 
 static void battery_update_proc(Layer *this_layer, GContext *ctx)
 {
-  if (show_battery_ic ==1)
+  if (show_battery_ic ==1 && debug_hide_time > 0)
   {
     draw_battery_IC(this_layer, ctx, SCREEN_WIDTH/2, 0-IC_WIDTH/4);
   }
