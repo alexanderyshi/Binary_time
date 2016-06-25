@@ -4,6 +4,7 @@
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static Layer *s_graphics_layer;
+static Layer *s_seconds_layer;
 static Layer *s_battery_layer;
 static Layer *s_weather_layer;
 
@@ -13,6 +14,7 @@ static int num_hour = 0;
 static int num_min = 0;
 static int num_second = 0;
 static int battery_level = 0;
+static int temperature = 0;
 
 // flags
 static int debug_hide_time = -1;
@@ -61,6 +63,8 @@ static int show_fancy_background = 0;
 
 //TODO: 
 //hide seconds config should actually change the tick handler
+  // !!! changing seconds tick handler behaviour will break debug time, changing of day values, etc. 
+
 //use seperate layer and update proc for seconds IC (make bg clear)
   //keep the main time IC layer as the main layer that has a background color filled in
 //display 10 values on 6 pins more efficiently
@@ -254,9 +258,6 @@ static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
     update_background_color(this_layer, ctx);  
   }
   draw_time_IC(this_layer, ctx, SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
-  if(show_seconds_ic == 1){
-    draw_seconds_IC(this_layer, ctx, SCREEN_WIDTH/2, SCREEN_HEIGHT+IC_WIDTH/4);
-  }
 }//end graphics_update_proc
 
 static void battery_update_proc(Layer *this_layer, GContext *ctx)
@@ -264,6 +265,14 @@ static void battery_update_proc(Layer *this_layer, GContext *ctx)
   if (show_battery_ic ==1 && debug_hide_time > 0)
   {
     draw_battery_IC(this_layer, ctx, SCREEN_WIDTH/2, 0-IC_WIDTH/4);
+  }
+}
+
+static void seconds_update_proc(Layer *this_layer, GContext *ctx)
+{
+  int aux_layer_depth = IC_WIDTH/4+PIN_WIDTH*PIN_SCALE;
+  if(show_seconds_ic == 1){
+    draw_seconds_IC(this_layer, ctx, SCREEN_WIDTH/2, aux_layer_depth + IC_WIDTH/4);
   }
 }
 
@@ -318,12 +327,16 @@ static void update_time() {
 }
 
 static void main_window_load(Window *window) {
+  int aux_layer_depth = IC_WIDTH/4+PIN_WIDTH*PIN_SCALE;
   // Graphics layer
   s_graphics_layer = layer_create(GRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT));
   layer_set_update_proc(s_graphics_layer, graphics_update_proc);
   
-  s_battery_layer = layer_create(GRect(0,0, SCREEN_WIDTH, IC_WIDTH/4+PIN_WIDTH*PIN_SCALE));
+  s_battery_layer = layer_create(GRect(0,0, SCREEN_WIDTH, aux_layer_depth));
   layer_set_update_proc(s_battery_layer, battery_update_proc);
+
+  s_seconds_layer = layer_create(GRect(0,SCREEN_HEIGHT - aux_layer_depth, SCREEN_WIDTH, aux_layer_depth));
+  layer_set_update_proc(s_seconds_layer, seconds_update_proc);
 
   //TODO: investigate how the GRect exactly defines this text layer boundary
   // Create time TextLayer
@@ -338,6 +351,7 @@ static void main_window_load(Window *window) {
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_get_root_layer(window), s_graphics_layer);
   layer_add_child(window_get_root_layer(window), s_battery_layer);
+  layer_add_child(window_get_root_layer(window), s_seconds_layer);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
 }
 
