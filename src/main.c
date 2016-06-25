@@ -237,16 +237,16 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
     static char second_string[] = "00";
     strftime(second_string, sizeof("00"), "%S", tick_time);
     debug_hide_time = (int_from_string(second_string)+5)%60;
-
-    //show debug timelayer
-  if (show_debug_time){
-    layer_set_hidden((Layer*)s_time_layer, false);
-  }
 }
 
 static void graphics_update_proc(Layer *this_layer, GContext *ctx) {
   //TODO: find std GNU C lib and add to src
   //http://www.gnu.org/software/libc/download.html
+  
+  //show debug timelayer
+  if (show_debug_time){
+    layer_set_hidden((Layer*)s_time_layer, false);
+  }
   
   if(hour_changed)
   {
