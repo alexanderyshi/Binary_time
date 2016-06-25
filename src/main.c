@@ -5,6 +5,7 @@ static Window *s_main_window;
 static TextLayer *s_time_layer;
 static Layer *s_graphics_layer;
 static Layer *s_battery_layer;
+static Layer *s_weather_layer;
 
 static int num_month = 0;
 static int num_day = 0;
@@ -173,7 +174,7 @@ static void draw_battery_IC(Layer *this_layer, GContext *ctx, int hor_coord, int
                      IC_CORNER_RADIUS,
                      GCornersAll);
   //draw battery pins - 
-  _draw_horizontal_pins(this_layer, ctx, battery_level, hor_coord, vert_coord, 'b', Second_Pin_Colour, PIN_SCALE);
+  _draw_horizontal_pins(this_layer, ctx, battery_level/2, hor_coord, vert_coord, 'b', Second_Pin_Colour, PIN_SCALE);
 }
 
 static void draw_time_IC(Layer *this_layer, GContext *ctx, int hor_coord, int vert_coord){
