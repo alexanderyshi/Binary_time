@@ -1,5 +1,5 @@
 #include <pebble.h>
-
+#define DEBUG 1
 //static members
 static Window *s_main_window;
 static TextLayer *s_time_layer;
@@ -62,11 +62,11 @@ static int show_fancy_background = 0;
   
 
 //TODO: 
+//should not use layer_set_hidden, simply not drawing the layer should be the equivalent of hiding layers
+
 //hide seconds config should actually change the tick handler
   // !!! changing seconds tick handler behaviour will break debug time, changing of day values, etc. 
 
-//use seperate layer and update proc for seconds IC (make bg clear)
-  //keep the main time IC layer as the main layer that has a background color filled in
 //display 10 values on 6 pins more efficiently
 //hide battery config should actually change the battery service
 
@@ -181,6 +181,19 @@ static void draw_battery_IC(Layer *this_layer, GContext *ctx, int hor_coord, int
   _draw_horizontal_pins(this_layer, ctx, battery_level/2, hor_coord, vert_coord, 'b', Second_Pin_Colour, PIN_SCALE);
 }
 
+static void draw_weather_IC(Layer *this_layer, GContext *ctx, int hor_coord, int vert_coord) {
+  //rectangle gets drawn above the top of the screen to prevent the bottom from rounding
+  graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
+  graphics_fill_rect(ctx, 
+                     (GRect){.origin = (GPoint){.x = hor_coord-IC_WIDTH/2,.y = vert_coord-IC_HEIGHT/2},
+                       .size = (GSize){.w = IC_WIDTH,.h = IC_HEIGHT}
+                            },
+                     IC_CORNER_RADIUS,
+                     GCornersAll);
+  //draw weather pins - 
+  // _draw_vertical_pins(this_layer, ctx, temperature, hor_coord, vert_coord, 'r', Second_Pin_Colour, PIN_SCALE);
+  _draw_vertical_pins(this_layer, ctx, 0b101010, hor_coord, vert_coord, 'r', Second_Pin_Colour, PIN_SCALE);
+}
 static void draw_time_IC(Layer *this_layer, GContext *ctx, int hor_coord, int vert_coord){
     //draw IC 
     graphics_context_set_fill_color(ctx, (GColor)IC_Colour);
@@ -276,6 +289,15 @@ static void seconds_update_proc(Layer *this_layer, GContext *ctx)
   }
 }
 
+static void weather_update_proc(Layer *this_layer, GContext *ctx)
+{
+  int aux_layer_depth = IC_WIDTH/4+PIN_WIDTH*PIN_SCALE;
+  if(show_weather_ic ==1 && debug_hide_time > 0)
+  {
+    draw_weather_IC(this_layer, ctx, 0 - IC_WIDTH/4, SCREEN_HEIGHT/2);
+  }
+}
+
 static void update_time() {
   // Get a tm structure
   time_t temp = time(NULL); 
@@ -302,6 +324,7 @@ static void update_time() {
   if (num_hour != old_hour)
   {
     hour_changed = 1;
+    layer_mark_dirty(s_weather_layer);
   }
   
   //update month and day at midnight
@@ -335,6 +358,9 @@ static void main_window_load(Window *window) {
   s_battery_layer = layer_create(GRect(0,0, SCREEN_WIDTH, aux_layer_depth));
   layer_set_update_proc(s_battery_layer, battery_update_proc);
 
+  s_weather_layer = layer_create(GRect(0,0, aux_layer_depth, SCREEN_HEIGHT));
+  layer_set_update_proc(s_weather_layer, weather_update_proc);
+
   s_seconds_layer = layer_create(GRect(0,SCREEN_HEIGHT - aux_layer_depth, SCREEN_WIDTH, aux_layer_depth));
   layer_set_update_proc(s_seconds_layer, seconds_update_proc);
 
@@ -352,7 +378,9 @@ static void main_window_load(Window *window) {
   layer_add_child(window_get_root_layer(window), s_graphics_layer);
   layer_add_child(window_get_root_layer(window), s_battery_layer);
   layer_add_child(window_get_root_layer(window), s_seconds_layer);
+  layer_add_child(window_get_root_layer(window), s_weather_layer);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
+
 }
 
 static void main_window_unload(Window *window) {
@@ -433,7 +461,6 @@ static void init() {
   //get initial values
   update_time();
   battery_callback(battery_state_service_peek());
-
   layer_set_hidden((Layer*)s_time_layer, true);
   
   //register for callbacks 
