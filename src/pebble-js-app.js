@@ -1,7 +1,7 @@
 var myAPIKey = '5fad46ee28ed8a0ee37004dc14a80cbc';
 var temperature = 1;
 var dictionary = {
-  'TEMPERATURE': temperature  
+  'KEY_TEMPERATURE': temperature  
 };
 
 // Send to Pebble

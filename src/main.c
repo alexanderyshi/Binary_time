@@ -437,8 +437,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         show_fancy_background = t->value->int32;
         break;
       case KEY_TEMPERATURE:
-//         temperature = t->value->int32;
-      temperature = 0b111111;
+        temperature = t->value->int32;
         break;
       default:
         APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
