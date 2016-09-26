@@ -20,7 +20,7 @@ static int temperature = 0;
 static int debug_hide_time = -1;
 static int hour_changed = 0;
 static int show_debug_time = 1; 
-static int show_weather_ic = 0;
+static int show_weather_ic = 1;
 static int show_seconds_ic = 0;
 static int show_battery_ic = 0;
 static int show_fancy_background = 0;
@@ -30,6 +30,7 @@ static int show_fancy_background = 0;
 #define KEY_SHOW_SECONDS              2
 #define KEY_SHOW_BATTERY              3
 #define KEY_SHOW_FANCY_BACKGROUND     4
+#define KEY_TEMPERATURE               5
 //colours
 #define IC_Colour               ((uint8_t)0b11000001)
 #define Text_Colour             ((uint8_t)0b11111111)
@@ -192,7 +193,7 @@ static void draw_weather_IC(Layer *this_layer, GContext *ctx, int hor_coord, int
                      GCornersAll);
   //draw weather pins - 
   // _draw_vertical_pins(this_layer, ctx, temperature, hor_coord, vert_coord, 'r', Second_Pin_Colour, PIN_SCALE);
-  _draw_vertical_pins(this_layer, ctx, 0b101010, hor_coord, vert_coord, 'r', Second_Pin_Colour, PIN_SCALE);
+  _draw_vertical_pins(this_layer, ctx, temperature, hor_coord, vert_coord, 'r', Second_Pin_Colour, PIN_SCALE);
 }
 static void draw_time_IC(Layer *this_layer, GContext *ctx, int hor_coord, int vert_coord){
     //draw IC 
@@ -388,9 +389,13 @@ static void main_window_unload(Window *window) {
     text_layer_destroy(s_time_layer);
     layer_destroy(s_graphics_layer);
     layer_destroy(s_battery_layer);
+    layer_destroy(s_seconds_layer);
+    layer_destroy(s_weather_layer);
     s_time_layer = NULL;
     s_graphics_layer = NULL;
     s_battery_layer = NULL;
+    s_seconds_layer = NULL;
+    s_weather_layer = NULL;
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -403,6 +408,12 @@ static void battery_callback(BatteryChargeState state) {
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+  // Read tuples for data
+  Tuple *temp_tuple = dict_find(iterator, KEY_TEMPERATURE);
+  temperature = temp_tuple->value->int32;
+
+
+  
   // Read first item
   Tuple *t = dict_read_first(iterator);
 
@@ -425,6 +436,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
       case KEY_SHOW_FANCY_BACKGROUND:
         show_fancy_background = t->value->int32;
         break;
+      case KEY_TEMPERATURE:
+//         temperature = t->value->int32;
+      temperature = 0b111111;
+        break;
       default:
         APP_LOG(APP_LOG_LEVEL_ERROR, "Key %d not recognized!", (int)t->key);
         break;
@@ -435,6 +450,17 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   }
 }
 
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+}
+
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+}
+
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+}
 
 static void init() {
   // Create main Window element and assign to pointer
@@ -464,9 +490,16 @@ static void init() {
   layer_set_hidden((Layer*)s_time_layer, true);
   
   //register for callbacks 
+  // Register callbacks
   app_message_register_inbox_received(inbox_received_callback);
+  app_message_register_inbox_dropped(inbox_dropped_callback);
+  app_message_register_outbox_failed(outbox_failed_callback);
+  app_message_register_outbox_sent(outbox_sent_callback);
+ 
   // Open AppMessage
-  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+  const int inbox_size = 64;
+  const int outbox_size = 64;
+  app_message_open(inbox_size, outbox_size);
 
   
   //first time month and day

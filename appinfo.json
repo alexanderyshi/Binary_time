@@ -4,7 +4,8 @@
         "KEY_SHOW_WEATHER": 1,
         "KEY_SHOW_SECONDS": 2,
         "KEY_SHOW_BATTERY": 3,
-        "KEY_SHOW_FANCY_BACKGROUND": 4
+        "KEY_SHOW_FANCY_BACKGROUND": 4,
+        "KEY_TEMPERATURE": 5 
     },
     "capabilities": [
         "location",
