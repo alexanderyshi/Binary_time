@@ -1,18 +1,16 @@
 var myAPIKey = '5fad46ee28ed8a0ee37004dc14a80cbc';
-var temperature = 1;
-var dictionary = {
-  'KEY_TEMPERATURE': temperature  
-};
 
-// Send to Pebble
-Pebble.sendAppMessage(dictionary,
-  function(e) {
-    console.log('Weather info sent to Pebble successfully!');
-  },
-  function(e) {
-    console.log('Error sending weather info to Pebble!');
-  }
-);
+function sendPebbleMessage(dictionary) {
+  // Send to Pebble
+  Pebble.sendAppMessage(dictionary,
+    function(e) {
+      console.log('Weather info sent to Pebble successfully!');
+    },
+    function(e) {
+      console.log('Error sending weather info to Pebble!');
+    }
+  );    
+}
 
 var xhrRequest = function (url, type, callback) {
   var xhr = new XMLHttpRequest();
@@ -33,9 +31,12 @@ function locationSuccess(pos) {
       var json = JSON.parse(responseText);
 
       // Temperature in Kelvin requires adjustment
-      temperature = Math.round(json.main.temp - 273.15);
+      var temperature = Math.round(json.main.temp - 273.15);
+      var dictionary = {
+        'KEY_TEMPERATURE': temperature  
+      };
       console.log('Temperature is ' + temperature);
-
+      sendPebbleMessage(dictionary);
       // Conditions
       // var conditions = json.weather[0].main;      
       // console.log('Conditions are ' + conditions);
